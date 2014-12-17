@@ -45,14 +45,9 @@
 
 __version__ = '0.1.0'
 
-import csv
 import json
 import logging
-import shapefile
-from StringIO import StringIO
-import zipfile
 
-from owslib.etree import etree
 from owslib.wfs import WebFeatureService
 
 LOGGER = logging.getLogger(__name__)
@@ -66,49 +61,41 @@ class WoudcClient(object):
 
         self.url = 'http://geo.woudc.org/ows'
         self.outputformat = 'application/json; subtype=geojson'
+        self.maxfeatures = 25000
 
         LOGGER.info('Contacting %s', self.url)
         self.server = WebFeatureService(self.url, '1.1.0')
 
-        LOGGER.info('Getting supported formats')
-        operation = self.server.getOperationByName('GetFeature')
-        self.formats = operation.parameters['outputFormat']['values']
-
-    def set_outputformat(self, outputformat):
-        """set outputformat for responses"""
-
-        if outputformat not in self.formats:
-            msg = 'Invalid outputformat \'%s\'' % self.outputformat
-            LOGGER.exception(msg)
-            raise ValueError(msg)
-        LOGGER.info('Setting outputformat to %s', outputformat)
-        self.outputformat = outputformat
-
-    def get_station_metadata(self, station_id=None):
+    def get_station_metadata(self):
         """get WOUDC station metadata"""
 
         LOGGER.info('Fetching station metadata')
         return self._get_metadata('stations')
 
-    def get_instrument_metadata(self, instrument_id=None):
+    def get_instrument_metadata(self):
         """get WOUDC instrument metadata"""
 
         LOGGER.info('Fetching instrument metadata')
         return self._get_metadata('instruments')
 
-    def get_contributor_metadata(self, contributor_id=None):
+    def get_contributor_metadata(self):
         """get WOUDC contributor metadata"""
 
         LOGGER.info('Fetching contributor metadata')
         return self._get_metadata('contributors')
 
     def get_data(self, typename, **kwargs):
-        """generic design pattern to download WOUDC metadata"""
+        """generic design pattern to download WOUDC observations"""
 
         constraints = []
         sort_property = None
         sort_descending = False
+        startindex = 0
+        output = []
 
+        LOGGER.info('Downloading dataset %s', typename)
+
+        LOGGER.info('Assembling query parameters')
         for key, value in kwargs.iteritems():
             if key == 'bbox':
                 bbox = value
@@ -124,67 +111,48 @@ class WoudcClient(object):
             if key == 'descending':
                 sort_descending = value
 
-        if self.outputformat not in self.formats:
-            msg = 'Invalid outputformat \'%s\'' % self.outputformat
-            LOGGER.exception(msg)
-            raise ValueError(msg)
+        LOGGER.info('Fetching observations')
+        # page download and assemble single list of JSON features
+        while True:
+            LOGGER.info('Fetching features %d - %d',
+                         startindex, startindex+self.maxfeatures)
 
-        LOGGER.debug('Fetching data from server')
-        features = self.server.getfeature(typename=typename, maxfeatures=2,
-                                          outputFormat=self.outputformat)
+            payload = self.server.getfeature(
+                typename=typename,
+                startindex=startindex,
+                maxfeatures=self.maxfeatures,
+                outputFormat=self.outputformat).read()
 
-        LOGGER.debug('Processing response')
-        output = self._handle_response(features)
+            LOGGER.debug('Processing response')
+            if payload.isspace():
+                LOGGER.debug('Empty response. Exiting')
+                break
 
-        if self.outputformat == 'application/json; subtype=geojson':
-            if sort_property is not None:
-                output.sort(key=lambda e: e['properties'][sort_property],
-                            reverse=sort_descending)
+            features = json.loads(payload)['features']
+            len_features = len(features)
+
+            LOGGER.debug('Found %d features', len_features)
+
+            output.extend(features)
+
+            if len_features < self.maxfeatures:
+                break
+
+            startindex = startindex + self.maxfeatures
+
+        if sort_property is not None:
+            LOGGER.info('Sorting response by %s', sort_property)
+            output.sort(key=lambda e: e['properties'][sort_property],
+                        reverse=sort_descending)
+
         return output
 
     def _get_metadata(self, typename):
         """generic design pattern to download WOUDC metadata"""
 
-        if self.outputformat not in self.formats:
-            msg = 'Invalid outputformat \'%s\'' % self.outputformat
-            LOGGER.exception(msg)
-            raise ValueError(msg)
-
         LOGGER.debug('Fetching data from server')
-        features = self.server.getfeature(typename=typename, maxfeatures=2,
+        features = self.server.getfeature(typename=typename,
                                           outputFormat=self.outputformat)
 
         LOGGER.debug('Processing response')
-        return self._handle_response(features)
-
-    def _handle_response(self, features):
-        """generic design pattern to decode WOUDC response formats"""
-
-        if self.outputformat == 'application/json; subtype=geojson':
-            msg = 'Serializing json object'
-            output = json.loads(features.read())['features']
-        elif 'xml' in self.outputformat:
-            msg = 'Serializing etree.Element object'
-            output = etree.fromstring(features.read())
-        elif 'csv' in self.outputformat.lower():
-            msg = 'Serializing csv.DictReader object'
-            with open(StringIO(features)) as csvfile:
-                output = csv.DictReader(csvfile)
-        elif 'shape' in self.outputformat.lower():
-            msg = 'Serializing shapefile.Reader object'
-            with zipfile.ZipFile(features) as zipf:
-                for name in zipf.namelist():
-                    if '.shp' in name:
-                        shp = StringIO(zipf.read(name))
-                    if '.dbf' in name:
-                        dbf = StringIO(zipf.read(name))
-                    if '.shx' in name:
-                        shx = StringIO(zipf.read(name))
-            output = shapefile.Reader(shp=shp, dbf=dbf, shx=shx)
-        else:
-            msg = 'Unsupported format %s' % self.outputformat
-            LOGGER.exception(msg)
-            raise NotImplementedError(msg)
-
-        LOGGER.debug(msg)
-        return output
+        return json.loads(features.read())['features']
