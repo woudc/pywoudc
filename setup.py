@@ -99,7 +99,7 @@ setup(
     name='pywoudc',
     version=pywoudc.__version__,
     description=DESCRIPTION.strip(),
-    long_description=open('README.txt').read(),
+    long_description=open('README.md').read(),
     license='MIT',
     platforms='all',
     keywords=' '.join(KEYWORDS),
