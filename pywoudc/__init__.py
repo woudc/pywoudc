@@ -89,6 +89,7 @@ class WoudcClient(object):
         """generic design pattern to download WOUDC observations"""
 
         constraints = []
+        variables = []
         filter_string = None
         bbox = None
         temporal = None
@@ -101,7 +102,7 @@ class WoudcClient(object):
 
         LOGGER.info('Downloading dataset %s', typename)
 
-        LOGGER.info('Assembling query parameters')
+        LOGGER.debug('Assembling query parameters')
         for key, value in kwargs.iteritems():
             if key == 'bbox':
                 bbox = value
@@ -112,17 +113,19 @@ class WoudcClient(object):
             if key == 'property_value':
                 property_value = value
 
+            if key == 'variables':
+                variables = value
             if key == 'sortby':
                 sort_property = value
             if key == 'descending':
                 sort_descending = value
 
-        LOGGER.info('Assembling constraints')
+        LOGGER.debug('Assembling constraints')
         if property_name is not None and property_value is not None:
             constraints.append(fes.PropertyIsEqualTo(property_name,
                                                      property_value))
         if bbox is not None:
-            LOGGER.info('Setting spatial constraint')
+            LOGGER.debug('Setting spatial constraint')
             constraints.append(fes.BBox(bbox))
 
         if temporal is not None:
@@ -139,23 +142,29 @@ class WoudcClient(object):
             LOGGER.debug('Combining constraints')
             flt = fes.FilterRequest()
             if len(constraints) == 1:
-                LOGGER.info('Single constraint')
+                LOGGER.debug('Single constraint')
                 filter_string = flt.setConstraint(constraints[0],
                                                   tostring=True)
             if len(constraints) > 1:
-                LOGGER.info('Multiple constraints')
+                LOGGER.debug('Multiple constraints')
                 filter_string = flt.setConstraintList([constraints],
                                                       tostring=True)
 
         LOGGER.info('Fetching observations')
+        LOGGER.info('Filters:')
+        LOGGER.info('bbox: %r', bbox)
+        LOGGER.info('temporal: %r', temporal)
+        LOGGER.info('attribute query: %r = %r', property_name, property_value)
+
         # page download and assemble single list of JSON features
         while True:
-            LOGGER.info('Fetching features %d - %d',
-                        startindex, startindex+self.maxfeatures)
+            LOGGER.debug('Fetching features %d - %d',
+                         startindex, startindex+self.maxfeatures)
 
             payload = self.server.getfeature(
                 typename=typename,
                 startindex=startindex,
+                propertyname=variables,
                 maxfeatures=self.maxfeatures,
                 filter=filter_string,
                 outputFormat=self.outputformat).read()
@@ -169,7 +178,7 @@ class WoudcClient(object):
                 features = json.loads(payload)['features']
             except ValueError:
                 msg = 'Query produced no results'
-                LOGGER.info('Query produced no results')
+                LOGGER.info(msg)
                 return None
 
             len_features = len(features)
@@ -183,7 +192,7 @@ class WoudcClient(object):
 
             startindex = startindex + self.maxfeatures
 
-        LOGGER.info('%d features', len(output))
+        LOGGER.info('Found %d features', len(output))
 
         if sort_property is not None:
             LOGGER.info('Sorting response by %s', sort_property)
