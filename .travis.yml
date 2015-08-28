@@ -15,6 +15,7 @@ script:
   - find -type f -name "*.py" | grep -v docs | xargs pep8 --ignore=E402
   - sphinx-apidoc -A "Tom Kralidis" -F -o docs pywoudc
   - cd docs && make html
+  - cd ..
 
 after_success:
   - coverage run --source pywoudc setup.py test
