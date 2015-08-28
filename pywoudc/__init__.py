@@ -45,6 +45,7 @@
 
 __version__ = '0.1.0'
 
+import datetime
 import json
 import logging
 
@@ -55,10 +56,15 @@ LOGGER = logging.getLogger(__name__)
 
 
 class WoudcClient(object):
-    """constructor"""
+    """WOUDC Client"""
 
     def __init__(self):
-        """initializer"""
+        """
+        Initialize a WOUDC Client.
+
+        @rtype: pywoudc.WoudcClient
+        @return: instance of pywoudc.WoudcClient
+        """
 
         self.url = 'http://geo.woudc.org/ows'
         self.outputformat = 'application/json; subtype=geojson'
@@ -68,25 +74,65 @@ class WoudcClient(object):
         self.server = WebFeatureService(self.url, '1.1.0')
 
     def get_station_metadata(self):
-        """get WOUDC station metadata"""
+        """
+        Download WOUDC station metadata
+
+        @rtype: dict
+        @return: dictionary of GeoJSON payload
+        """
 
         LOGGER.info('Fetching station metadata')
         return self._get_metadata('stations')
 
     def get_instrument_metadata(self):
-        """get WOUDC instrument metadata"""
+        """
+        Download WOUDC instrument metadata
+
+        @rtype: dict
+        @return: dictionary of GeoJSON payload
+        """
 
         LOGGER.info('Fetching instrument metadata')
         return self._get_metadata('instruments')
 
     def get_contributor_metadata(self):
-        """get WOUDC contributor metadata"""
+        """
+        Download WOUDC contributors metadata
+
+        @rtype: dict
+        @return: dictionary of GeoJSON payload
+        """
 
         LOGGER.info('Fetching contributor metadata')
         return self._get_metadata('contributors')
 
     def get_data(self, typename, **kwargs):
-        """generic design pattern to download WOUDC observations"""
+        """
+        Download WOUDC observations
+
+        @type bbox: list
+        @param bbox: bounding box spatial filter (C{minx, miny, maxx, maxy})
+        @type temporal: list
+        @param temporal: temporal filter list (C{start}, C{end})
+                         accepts the following types:
+                             - C{datetime.date}
+                             - C{datetime.datetime}
+                             - string date (e.g. C{2012-10-30})
+                             - string datetime (e.g. C{2012-10-30 11:11:11})
+        @type property_name: string
+        @param property_name: Property name to filter query
+        @type property_value: string
+        @param property_value: Property value / literal of property_name
+        @type sort_property: string
+        @param sort_property: Property to sort results
+                              (default C{instance_datetime})
+        @type sort_descending: bool
+        @param sort_descending: whether to sort descending (default=C{False}).
+                                Applied if C{sort_property} is specified
+
+        @rtype: list
+        @return: list of WOUDC observations GeoJSON payload
+        """
 
         constraints = []
         variables = []
@@ -112,7 +158,6 @@ class WoudcClient(object):
                 property_name = value
             if key == 'property_value':
                 property_value = str(value)
-
             if key == 'variables':
                 variables = value
             if key == 'sortby':
@@ -132,8 +177,7 @@ class WoudcClient(object):
             LOGGER.info('Setting temporal constraint')
             temporal_start, temporal_end = temporal.split('/')
 
-            temporal_start = '%s 00:00:00' % temporal_start
-            temporal_end = '%s 23:59:59' % temporal_end
+            temporal_start, temporal_end = __temporal_dt2string(temporal)
 
             constraints.append(fes.PropertyIsBetween(
                 'instance_datetime', temporal_start, temporal_end))
@@ -210,3 +254,43 @@ class WoudcClient(object):
 
         LOGGER.debug('Processing response')
         return json.loads(features.read())['features']
+
+
+def __temporal_dt2string(self, temporal):
+    """
+    Utility function to convert list of start time / end time
+    to list of strings (private)
+
+    @type temporal: list
+    @param temporal: list of datetime.date objects
+    """
+
+    return [
+        __date_to_string(temporal[0], 'begin'),
+        __date_to_string(temporal[1], 'end')
+    ]
+
+
+def __date_to_string(dateval, direction='begin'):
+    """Utility function (private)"""
+
+    date_as_string = None
+
+    if direction == 'begin':
+        default_time = '00:00:00'
+    elif direction == 'end':
+        default_time = '23:59:59'
+    else:
+        raise ValueError('span value must be begin or end')
+
+    if isinstance(dateval, str):
+        if len(dateval) == 10:  # date
+            date_as_string = '%s %s' % (dateval, direction)
+        elif len(dateval) > 10:  # datetime
+            date_as_string = dateval
+    elif isinstance(dateval, datetime.date):
+        date_as_string = dateval.strftime('%Y-%m-%d %s' % default_time)
+    elif isinstance(dateval, datetime.datetime):
+        date_as_string = dateval.strftime('%Y-%m-%d %H:%M:%S')
+
+    return date_as_string

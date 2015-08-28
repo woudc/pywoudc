@@ -1,6 +1,7 @@
 language: python
 
 python:
+  - "2.6"
   - "2.7"
 
 install:
@@ -11,7 +12,8 @@ install:
 
 script:
   - python setup.py test
-  - find . -type f -name "*.py" | xargs pep8
+  - find . -type f -name "*.py" | xargs pep8 --ignore=E402
+  - epydoc --html pywoudc -v
 
 after_success:
   - coverage run --source pywoudc setup.py test
