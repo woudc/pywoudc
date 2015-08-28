@@ -76,8 +76,8 @@ class WoudcClientTest(unittest.TestCase):
         self.assertEqual(client.maxfeatures, 25000,
                          'Expected specific default maxfeatures')
 
-        self.assertIsInstance(client.server, WebFeatureService_1_1_0,
-                              'Expected specific instance')
+        self.assertTrue(isinstance(client.server, WebFeatureService_1_1_0),
+                        'Expected specific instance')
 
 
 if __name__ == '__main__':
