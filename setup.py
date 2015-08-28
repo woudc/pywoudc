@@ -44,7 +44,9 @@
 # =================================================================
 
 import os
-from distutils.core import setup
+import sys
+from distutils.core import setup, Command
+
 import pywoudc
 
 # set dependencies
@@ -68,6 +70,21 @@ EMAIL = 'tom.kralidis@ec.gc.ca'
 SCRIPTS = []
 
 URL = 'https://github.com/woudc/pywoudc'
+
+
+class PyTest(Command):
+    user_options = []
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        import subprocess
+        errno = subprocess.call([sys.executable, 'tests/run_tests.py'])
+        raise SystemExit(errno)
 
 
 # from https://wiki.python.org/moin/Distutils/Cookbook/AutoPackageDiscovery
@@ -122,5 +139,7 @@ setup(
         'Programming Language :: Python',
         'Topic :: Scientific/Engineering :: Atmospheric Science',
         'Topic :: Scientific/Engineering :: GIS'
-    ]
+    ],
+    cmdclass={'test': PyTest},
+    test_suite='tests.run_tests'
 )

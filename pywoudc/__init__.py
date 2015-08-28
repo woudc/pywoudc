@@ -111,7 +111,7 @@ class WoudcClient(object):
             if key == 'property_name':
                 property_name = value
             if key == 'property_value':
-                property_value = value
+                property_value = str(value)
 
             if key == 'variables':
                 variables = value
@@ -159,7 +159,7 @@ class WoudcClient(object):
         # page download and assemble single list of JSON features
         while True:
             LOGGER.debug('Fetching features %d - %d',
-                         startindex, startindex+self.maxfeatures)
+                         startindex, startindex + self.maxfeatures)
 
             payload = self.server.getfeature(
                 typename=typename,

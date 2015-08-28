@@ -1,0 +1,18 @@
+language: python
+
+python:
+  - "2.7"
+
+install:
+  - pip install -r requirements.txt
+  - pip install -r requirements-dev.txt
+  - pip install coverage
+  - python setup.py install
+
+script:
+  - python setup.py test
+  - find . -type f -name "*.py" | xargs pep8
+
+after_success:
+  - coverage run --source pywoudc setup.py test
+  - coverage report -m
