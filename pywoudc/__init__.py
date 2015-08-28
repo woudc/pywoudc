@@ -62,13 +62,17 @@ class WoudcClient(object):
         """
         Initialize a WOUDC Client.
 
-        @rtype: pywoudc.WoudcClient
-        @return: instance of pywoudc.WoudcClient
+        :returns: instance of pywoudc.WoudcClient
         """
 
         self.url = 'http://geo.woudc.org/ows'
+        """The URL of the WOUDC data service"""
+
         self.outputformat = 'application/json; subtype=geojson'
+        """The default outputformat when requesting WOUDC data"""
+
         self.maxfeatures = 25000
+        """The default limit of records to return"""
 
         LOGGER.info('Contacting %s', self.url)
         self.server = WebFeatureService(self.url, '1.1.0')
@@ -77,8 +81,7 @@ class WoudcClient(object):
         """
         Download WOUDC station metadata
 
-        @rtype: dict
-        @return: dictionary of GeoJSON payload
+        :returns: dictionary of GeoJSON payload
         """
 
         LOGGER.info('Fetching station metadata')
@@ -88,8 +91,7 @@ class WoudcClient(object):
         """
         Download WOUDC instrument metadata
 
-        @rtype: dict
-        @return: dictionary of GeoJSON payload
+        :returns: dictionary of GeoJSON payload
         """
 
         LOGGER.info('Fetching instrument metadata')
@@ -99,8 +101,7 @@ class WoudcClient(object):
         """
         Download WOUDC contributors metadata
 
-        @rtype: dict
-        @return: dictionary of GeoJSON payload
+        :returns: dictionary of GeoJSON payload
         """
 
         LOGGER.info('Fetching contributor metadata')
@@ -110,28 +111,27 @@ class WoudcClient(object):
         """
         Download WOUDC observations
 
-        @type bbox: list
-        @param bbox: bounding box spatial filter (C{minx, miny, maxx, maxy})
-        @type temporal: list
-        @param temporal: temporal filter list (C{start}, C{end})
+        :param bbox: a list representing a bounding box spatial
+                     filter (`minx, miny, maxx, maxy`)
+        :param temporal: a list representing a time period (start, end) which
                          accepts the following types:
-                             - C{datetime.date}
-                             - C{datetime.datetime}
-                             - string date (e.g. C{2012-10-30})
-                             - string datetime (e.g. C{2012-10-30 11:11:11})
-        @type property_name: string
-        @param property_name: Property name to filter query
-        @type property_value: string
-        @param property_value: Property value / literal of property_name
-        @type sort_property: string
-        @param sort_property: Property to sort results
-                              (default C{instance_datetime})
-        @type sort_descending: bool
-        @param sort_descending: whether to sort descending (default=C{False}).
-                                Applied if C{sort_property} is specified
 
-        @rtype: list
-        @return: list of WOUDC observations GeoJSON payload
+                          - :py:class:`datetime.date`
+                          - :py:class:`datetime.datetime`
+                          - string date (e.g. ``2012-10-30``)
+                          - string datetime (e.g. ``2012-10-30 11:11:11``)
+
+        :param property_name: a string representing the property name to apply
+                              as filter against
+        :param property_value: a string representing the value which filters
+                               against `property_name`
+        :param sort_property: a string representing the property on which
+                              to sort results (default ``instance_datetime``)
+        :param sort_descending: a boolean of whether to sort descending
+                                (default is ``False``).
+                                Applied if `sort_property` is specified
+
+        :returns: list of WOUDC observations GeoJSON payload
         """
 
         constraints = []
@@ -261,8 +261,7 @@ def __temporal_dt2string(self, temporal):
     Utility function to convert list of start time / end time
     to list of strings (private)
 
-    @type temporal: list
-    @param temporal: list of datetime.date objects
+    :param temporal: list of `datetime.date` objects
     """
 
     return [

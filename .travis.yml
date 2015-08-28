@@ -13,7 +13,8 @@ install:
 script:
   - python setup.py test
   - find . -type f -name "*.py" | xargs pep8 --ignore=E402
-  - epydoc --html pywoudc -v
+  - sphinx-apidoc -A "Tom Kralidis" -F -o docs pywoudc
+  - cd docs && make html
 
 after_success:
   - coverage run --source pywoudc setup.py test
