@@ -88,11 +88,10 @@ class WoudcClientTest(unittest.TestCase):
 
         client = WoudcClient()
 
-        with self.assertRaises(ValueError):
-            client.get_data(dataset, bbox=bad_bbox)
+        self.assertRaises(ValueError, client.get_data, dataset, bbox=bad_bbox)
 
-        with self.assertRaises(ValueError):
-            client.get_data(dataset, sort_descending='true')
+        self.assertRaises(ValueError, client.get_data, dataset,
+                          sort_descending='true')
 
     def test_temporal_to_string(self):
         """test temporal extent handling"""
