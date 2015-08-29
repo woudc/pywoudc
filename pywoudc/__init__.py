@@ -162,7 +162,7 @@ class WoudcClient(object):
                 variables = value
             if key == 'sortby':
                 sort_property = value
-            if key == 'descending':
+            if key == 'sort_descending':
                 sort_descending = value
 
         LOGGER.debug('Assembling constraints')
@@ -171,16 +171,22 @@ class WoudcClient(object):
                                                      property_value))
         if bbox is not None:
             LOGGER.debug('Setting spatial constraint')
+            if len(bbox) != 4:
+                raise ValueError('bbox must be list of minx, miny, maxx, maxy')
             constraints.append(fes.BBox(bbox))
 
         if temporal is not None:
             LOGGER.info('Setting temporal constraint')
             temporal_start, temporal_end = temporal.split('/')
 
-            temporal_start, temporal_end = __temporal_dt2string(temporal)
+            temporal_start, temporal_end = temporal2string(temporal)
 
             constraints.append(fes.PropertyIsBetween(
                 'instance_datetime', temporal_start, temporal_end))
+
+        if sort_descending is not None:
+            if not isinstance(sort_descending, bool):
+                raise ValueError('sort_descending must be boolean')
 
         if constraints:
             LOGGER.debug('Combining constraints')
@@ -256,7 +262,7 @@ class WoudcClient(object):
         return json.loads(features.read())['features']
 
 
-def __temporal_dt2string(self, temporal):
+def temporal2string(temporal):
     """
     Utility function to convert list of start time / end time
     to list of strings (private)
@@ -280,16 +286,16 @@ def __date_to_string(dateval, direction='begin'):
     elif direction == 'end':
         default_time = '23:59:59'
     else:
-        raise ValueError('span value must be begin or end')
+        raise ValueError('direction value must be begin or end')
 
     if isinstance(dateval, str):
         if len(dateval) == 10:  # date
-            date_as_string = '%s %s' % (dateval, direction)
+            date_as_string = '%s %s' % (dateval, default_time)
         elif len(dateval) > 10:  # datetime
             date_as_string = dateval
-    elif isinstance(dateval, datetime.date):
-        date_as_string = dateval.strftime('%Y-%m-%d %s' % default_time)
     elif isinstance(dateval, datetime.datetime):
         date_as_string = dateval.strftime('%Y-%m-%d %H:%M:%S')
+    elif isinstance(dateval, datetime.date):
+        date_as_string = '%s %s' % (dateval.strftime('%Y-%m-%d'), default_time)
 
     return date_as_string

@@ -13,6 +13,7 @@ install:
 script:
   - python setup.py test
   - find -type f -name "*.py" | grep -v docs | xargs pep8 --ignore=E402
+  - find -type f -name "*.py" | grep -v docs | xargs pyflakes
   - sphinx-apidoc -A "Tom Kralidis" -F -o docs pywoudc
   - cd docs && make html
   - cd ..

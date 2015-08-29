@@ -43,11 +43,12 @@
 #
 # =================================================================
 
+import datetime
 import unittest
 
 from owslib.feature.wfs110 import WebFeatureService_1_1_0
 
-from pywoudc import WoudcClient
+from pywoudc import WoudcClient, temporal2string
 
 
 class WoudcClientTest(unittest.TestCase):
@@ -79,6 +80,49 @@ class WoudcClientTest(unittest.TestCase):
         self.assertTrue(isinstance(client.server, WebFeatureService_1_1_0),
                         'Expected specific instance')
 
+    def test_get_data(self):
+        """test get data handling"""
+
+        dataset = 'totalozone'
+        bad_bbox = [42, -52, 84]
+
+        client = WoudcClient()
+
+        with self.assertRaises(ValueError):
+            client.get_data(dataset, bbox=bad_bbox)
+
+        with self.assertRaises(ValueError):
+            client.get_data(dataset, sort_descending='true')
+
+    def test_temporal_to_string(self):
+        """test temporal extent handling"""
+
+        te_list = ['2000-10-10', '2001-11-11']
+        self.assertEqual(temporal2string(te_list),
+                         ['2000-10-10 00:00:00', '2001-11-11 23:59:59'],
+                         'Expected specific temporal extent (strings)')
+
+        te_list = ['2000-10-10 02:22:28', '2001-11-11 11:33:24']
+        self.assertEqual(temporal2string(te_list),
+                         ['2000-10-10 02:22:28', '2001-11-11 11:33:24'],
+                         'Expected specific temporal extent (datetimes)')
+
+        te_list = [datetime.date(2000, 11, 30), datetime.date(2011, 11, 30)]
+        self.assertEqual(temporal2string(te_list),
+                         ['2000-11-30 00:00:00', '2011-11-30 23:59:59'],
+                         'Expected specific temporal extent (dates)')
+
+        te_list = [datetime.datetime(2002, 10, 30, 11, 11, 11),
+                   datetime.datetime(2011, 11, 30, 12, 12, 12)]
+        self.assertEqual(temporal2string(te_list),
+                         ['2002-10-30 11:11:11', '2011-11-30 12:12:12'],
+                         'Expected specific temporal extent (datetimes)')
+
+        te_list_strings = temporal2string(te_list)
+        self.assertTrue(isinstance(te_list_strings, list),
+                        'Expected specific instance')
+        self.assertEqual(len(te_list_strings), 2,
+                         'Expected specific list length')
 
 if __name__ == '__main__':
     unittest.main()
