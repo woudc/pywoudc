@@ -147,7 +147,7 @@ class WoudcClient(object):
         """
 
         constraints = []
-        variables = []
+        variables = '*'
         filter_string = None
         bbox = None
         temporal = None
@@ -205,9 +205,9 @@ class WoudcClient(object):
             if not isinstance(sort_descending, bool):
                 raise ValueError('sort_descending must be boolean')
 
-        if variables is not None:
+        if variables != '*':
             if not isinstance(variables, list):
-                raise ValueError('sort_descending must be list')
+                raise ValueError('variables must be list')
 
         if constraints:
             LOGGER.debug('Combining constraints')
