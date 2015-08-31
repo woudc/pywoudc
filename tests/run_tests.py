@@ -130,6 +130,9 @@ class WoudcClientTest(unittest.TestCase):
         self.assertRaises(ValueError, self.client.get_data,
                           dataset, sort_descending='true')
 
+        self.assertRaises(ValueError, self.client.get_data,
+                          dataset, variables='foo')
+
     def test_date2string(self):
         """test date handling"""
 

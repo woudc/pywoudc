@@ -131,6 +131,8 @@ class WoudcClient(object):
                               as filter against
         :param property_value: a string representing the value which filters
                                against `property_name`
+        :param variables: a list of variables to return
+                          as part of the response (default returns all)
         :param sort_property: a string representing the property on which
                               to sort results (default ``instance_datetime``)
         :param sort_descending: a boolean of whether to sort descending
@@ -198,6 +200,10 @@ class WoudcClient(object):
         if sort_descending is not None:
             if not isinstance(sort_descending, bool):
                 raise ValueError('sort_descending must be boolean')
+
+        if variables is not None:
+            if not isinstance(variables, list):
+                raise ValueError('sort_descending must be list')
 
         if constraints:
             LOGGER.debug('Combining constraints')
