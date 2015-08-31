@@ -150,7 +150,8 @@ class WoudcClient(object):
         sort_property = None
         sort_descending = False
         startindex = 0
-        output = []
+        features = None
+        feature_collection = None
 
         LOGGER.info('Downloading dataset %s', typename)
 
@@ -235,31 +236,35 @@ class WoudcClient(object):
                 break
 
             try:
-                features = json.loads(payload)['features']
+                features = json.loads(payload)
             except ValueError:
                 msg = 'Query produced no results'
                 LOGGER.info(msg)
                 return None
 
-            len_features = len(features)
+            len_features = len(features['features'])
 
             LOGGER.debug('Found %d features', len_features)
 
-            output.extend(features)
+            if feature_collection is None:
+                feature_collection = features
+            else:
+                feature_collection['features'].extend(features['features'])
 
             if len_features < self.maxfeatures:
                 break
 
             startindex = startindex + self.maxfeatures
 
-        LOGGER.info('Found %d features', len(output))
+        LOGGER.info('Found %d total features', len(features['features']))
 
         if sort_property is not None:
             LOGGER.info('Sorting response by %s', sort_property)
-            output.sort(key=lambda e: e['properties'][sort_property],
-                        reverse=sort_descending)
+            feature_collection['features'].sort(
+                key=lambda e: e['properties'][sort_property],
+                reverse=sort_descending)
 
-        return output
+        return feature_collection
 
     def _get_metadata(self, typename, raw=False):
         """generic design pattern to download WOUDC metadata"""
@@ -273,7 +278,7 @@ class WoudcClient(object):
             LOGGER.info('Emitting raw GeoJSON response')
             return features.read()
         LOGGER.info('Emitting GeoJSON features as list')
-        return json.loads(features.read())['features']
+        return json.loads(features.read())
 
 
 def date2string(dateval, direction='begin'):
