@@ -1,0 +1,28 @@
+environment:
+  matrix:
+    - PYTHON: "C:\\Python27"
+      PYTHON_VERSION: "2.7.x"
+      PYTHON_ARCH: "32"
+
+    - PYTHON: "C:\\Python27-x64"
+      PYTHON_VERSION: "2.7.x"
+      PYTHON_ARCH: "64"
+
+install:
+  - pip install -r requirements.txt
+  - pip install -r requirements-dev.txt
+  - python setup.py install
+
+build: off
+
+test_script:
+  - python setup.py test
+  - find -type f -name "*.py" | grep -v docs | xargs pep8 --ignore=E402
+  - find -type f -name "*.py" | grep -v docs | xargs pyflakes
+  - sphinx-apidoc -A "Tom Kralidis" -F -o docs pywoudc
+  - cd docs && make html
+  - cd ..
+
+on_success:
+  - coverage run --source pywoudc setup.py test
+  - coverage report -m
