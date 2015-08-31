@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/woudc/pywoudc.png?branch=master)](https://travis-ci.org/woudc/pywoudc)
+[![Build Status](https://travis-ci.org/woudc/pywoudc.png?branch=master)](https://travis-ci.org/woudc/pywoudc) [![Build status](https://ci.appveyor.com/api/projects/status/02koln2pe4ap5kvd/branch/master?svg=true)](https://ci.appveyor.com/project/tomkralidis/pywoudc/branch/master)
 
 # pywoudc
 
