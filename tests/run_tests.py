@@ -48,7 +48,7 @@ import unittest
 
 from owslib.feature.wfs110 import WebFeatureService_1_1_0
 
-from pywoudc import WoudcClient, temporal2string
+from pywoudc import WoudcClient, date2string
 
 
 class WoudcClientTest(unittest.TestCase):
@@ -56,7 +56,8 @@ class WoudcClientTest(unittest.TestCase):
 
     def setUp(self):
         """bootstrap"""
-        pass
+
+        self.client = WoudcClient()
 
     def tearDown(self):
         """destroy"""
@@ -65,20 +66,39 @@ class WoudcClientTest(unittest.TestCase):
     def test_smoke_test(self):
         """test basic properties"""
 
-        client = WoudcClient()
-
-        self.assertEqual(client.url, 'http://geo.woudc.org/ows',
+        self.assertEqual(self.client.url, 'http://geo.woudc.org/ows',
                          'Expected specific URL')
 
-        self.assertEqual(client.outputformat,
+        self.assertEqual(self.client.outputformat,
                          'application/json; subtype=geojson',
                          'Expected specific default outputformat')
 
-        self.assertEqual(client.maxfeatures, 25000,
+        self.assertEqual(self.client.maxfeatures, 25000,
                          'Expected specific default maxfeatures')
 
-        self.assertTrue(isinstance(client.server, WebFeatureService_1_1_0),
+        self.assertTrue(isinstance(self.client.server,
+                                   WebFeatureService_1_1_0),
                         'Expected specific instance')
+
+    def test_get_metadata(self):
+        """test get various requests for metadata"""
+
+        for typename in ['stations', 'instruments', 'contributors']:
+            data = self.client._get_metadata(typename)
+
+            self.assertTrue(isinstance(data, list),
+                            'Expected specific instance')
+
+            self.assertTrue(len(data) > 0,
+                            'Expected non-empty %s list' % typename)
+
+            raw_data = self.client._get_metadata(typename, raw=True)
+
+            self.assertTrue(isinstance(raw_data, str),
+                            'Expected specific instance')
+
+            self.assertTrue('"type": "FeatureCollection"' in raw_data,
+                            'Expected raw GeoJSON response')
 
     def test_get_data(self):
         """test get data handling"""
@@ -86,42 +106,57 @@ class WoudcClientTest(unittest.TestCase):
         dataset = 'totalozone'
         bad_bbox = [42, -52, 84]
 
-        client = WoudcClient()
+        self.assertRaises(ValueError, self.client.get_data,
+                          dataset, bbox=bad_bbox)
 
-        self.assertRaises(ValueError, client.get_data, dataset, bbox=bad_bbox)
+        self.assertRaises(ValueError, self.client.get_data,
+                          dataset, bbox='-142,42,-53,84')
 
-        self.assertRaises(ValueError, client.get_data, dataset,
-                          sort_descending='true')
+        self.assertRaises(ValueError, self.client.get_data,
+                          dataset, temporal='2000-11-11/2001-10-30')
 
-    def test_temporal_to_string(self):
-        """test temporal extent handling"""
+        self.assertRaises(ValueError, self.client.get_data,
+                          dataset, temporal=['2000-11-11'])
 
-        te_list = ['2000-10-10', '2001-11-11']
-        self.assertEqual(temporal2string(te_list),
-                         ['2000-10-10 00:00:00', '2001-11-11 23:59:59'],
-                         'Expected specific temporal extent (strings)')
+        self.assertRaises(ValueError, self.client.get_data,
+                          dataset, sort_descending='true')
 
-        te_list = ['2000-10-10 02:22:28', '2001-11-11 11:33:24']
-        self.assertEqual(temporal2string(te_list),
-                         ['2000-10-10 02:22:28', '2001-11-11 11:33:24'],
-                         'Expected specific temporal extent (datetimes)')
+    def test_date2string(self):
+        """test date handling"""
 
-        te_list = [datetime.date(2000, 11, 30), datetime.date(2011, 11, 30)]
-        self.assertEqual(temporal2string(te_list),
-                         ['2000-11-30 00:00:00', '2011-11-30 23:59:59'],
-                         'Expected specific temporal extent (dates)')
+        self.assertEqual(date2string('2000-10-10', 'begin'),
+                         '2000-10-10 00:00:00',
+                         'Expected specific date string from date string')
 
-        te_list = [datetime.datetime(2002, 10, 30, 11, 11, 11),
-                   datetime.datetime(2011, 11, 30, 12, 12, 12)]
-        self.assertEqual(temporal2string(te_list),
-                         ['2002-10-30 11:11:11', '2011-11-30 12:12:12'],
-                         'Expected specific temporal extent (datetimes)')
+        self.assertEqual(date2string('2001-11-11', 'end'),
+                         '2001-11-11 23:59:59',
+                         'Expected specific date string from date string')
 
-        te_list_strings = temporal2string(te_list)
-        self.assertTrue(isinstance(te_list_strings, list),
-                        'Expected specific instance')
-        self.assertEqual(len(te_list_strings), 2,
-                         'Expected specific list length')
+        self.assertEqual(date2string('2000-10-10 02:22:28'),
+                         '2000-10-10 02:22:28',
+                         'Expected specific date string from datetime string')
+
+        self.assertEqual(date2string('2001-11-11 11:33:24'),
+                         '2001-11-11 11:33:24',
+                         'Expected specific date string from datetime string')
+
+        self.assertEqual(date2string(datetime.date(2000, 11, 30), 'begin'),
+                         '2000-11-30 00:00:00',
+                         'Expected specific date string from date object')
+
+        self.assertEqual(date2string(datetime.date(2011, 11, 30), 'end'),
+                         '2011-11-30 23:59:59',
+                         'Expected specific date string from date object')
+
+        self.assertEqual(date2string(
+                         datetime.datetime(2002, 10, 30, 11, 11, 11)),
+                         '2002-10-30 11:11:11',
+                         'Expected specific date string from datetime object')
+
+        self.assertEqual(date2string(
+                         datetime.datetime(2011, 11, 30, 12, 12, 12)),
+                         '2011-11-30 12:12:12',
+                         'Expected specific date string from datetime object')
 
 if __name__ == '__main__':
     unittest.main()

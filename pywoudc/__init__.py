@@ -77,35 +77,41 @@ class WoudcClient(object):
         LOGGER.info('Contacting %s', self.url)
         self.server = WebFeatureService(self.url, '1.1.0')
 
-    def get_station_metadata(self):
+    def get_station_metadata(self, raw=False):
         """
         Download WOUDC station metadata
 
+        :param raw: a boolean specifying whether to return the raw GeoJSON
+                    payload as a string (default is False)
         :returns: dictionary of GeoJSON payload
         """
 
         LOGGER.info('Fetching station metadata')
-        return self._get_metadata('stations')
+        return self._get_metadata('stations', raw)
 
-    def get_instrument_metadata(self):
+    def get_instrument_metadata(self, raw=False):
         """
         Download WOUDC instrument metadata
 
+        :param raw: a boolean specifying whether to return the raw GeoJSON
+                    payload as a string (default is False)
         :returns: dictionary of GeoJSON payload
         """
 
         LOGGER.info('Fetching instrument metadata')
-        return self._get_metadata('instruments')
+        return self._get_metadata('instruments', raw)
 
-    def get_contributor_metadata(self):
+    def get_contributor_metadata(self, raw=False):
         """
         Download WOUDC contributors metadata
 
+        :param raw: a boolean specifying whether to return the raw GeoJSON
+                    payload as a string (default is False)
         :returns: dictionary of GeoJSON payload
         """
 
         LOGGER.info('Fetching contributor metadata')
-        return self._get_metadata('contributors')
+        return self._get_metadata('contributors', raw)
 
     def get_data(self, typename, **kwargs):
         """
@@ -113,8 +119,8 @@ class WoudcClient(object):
 
         :param bbox: a list representing a bounding box spatial
                      filter (`minx, miny, maxx, maxy`)
-        :param temporal: a list representing a time period (start, end) which
-                         accepts the following types:
+        :param temporal: a list of two elements representing a time period
+                         (start, end) which accepts the following types:
 
                           - :py:class:`datetime.date`
                           - :py:class:`datetime.datetime`
@@ -170,16 +176,20 @@ class WoudcClient(object):
             constraints.append(fes.PropertyIsEqualTo(property_name,
                                                      property_value))
         if bbox is not None:
-            LOGGER.debug('Setting spatial constraint')
-            if len(bbox) != 4:
+            if not isinstance(bbox, list) or len(bbox) != 4:
                 raise ValueError('bbox must be list of minx, miny, maxx, maxy')
+
+            LOGGER.debug('Setting spatial constraint')
             constraints.append(fes.BBox(bbox))
 
         if temporal is not None:
-            LOGGER.info('Setting temporal constraint')
-            temporal_start, temporal_end = temporal.split('/')
+            if not isinstance(temporal, list) or len(temporal) != 2:
+                msg = 'temporal must be list of start date, end date'
+                raise ValueError(msg)
 
-            temporal_start, temporal_end = temporal2string(temporal)
+            LOGGER.info('Setting temporal constraint')
+            temporal_start = date2string(temporal[0], 'begin')
+            temporal_end = date2string(temporal[1], 'end')
 
             constraints.append(fes.PropertyIsBetween(
                 'instance_datetime', temporal_start, temporal_end))
@@ -251,7 +261,7 @@ class WoudcClient(object):
 
         return output
 
-    def _get_metadata(self, typename):
+    def _get_metadata(self, typename, raw=False):
         """generic design pattern to download WOUDC metadata"""
 
         LOGGER.debug('Fetching data from server')
@@ -259,24 +269,14 @@ class WoudcClient(object):
                                           outputFormat=self.outputformat)
 
         LOGGER.debug('Processing response')
+        if raw:
+            LOGGER.info('Emitting raw GeoJSON response')
+            return features.read()
+        LOGGER.info('Emitting GeoJSON features as list')
         return json.loads(features.read())['features']
 
 
-def temporal2string(temporal):
-    """
-    Utility function to convert list of start time / end time
-    to list of strings (private)
-
-    :param temporal: list of `datetime.date` objects
-    """
-
-    return [
-        __date_to_string(temporal[0], 'begin'),
-        __date_to_string(temporal[1], 'end')
-    ]
-
-
-def __date_to_string(dateval, direction='begin'):
+def date2string(dateval, direction='begin'):
     """Utility function (private)"""
 
     date_as_string = None
