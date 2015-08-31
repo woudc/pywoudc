@@ -1,1 +1,1 @@
--e git+https://github.com/geopython/OWSLib.git@#egg=owslib
+OWSLib==0.9.0
