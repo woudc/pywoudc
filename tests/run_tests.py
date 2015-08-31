@@ -69,6 +69,9 @@ class WoudcClientTest(unittest.TestCase):
         self.assertEqual(self.client.url, 'http://geo.woudc.org/ows',
                          'Expected specific URL')
 
+        self.assertEqual(self.client.about,
+                         'http://woudc.org/about/data-access.php',
+                         'Expected specific about URL')
         self.assertEqual(self.client.outputformat,
                          'application/json; subtype=geojson',
                          'Expected specific default outputformat')

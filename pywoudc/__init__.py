@@ -68,6 +68,9 @@ class WoudcClient(object):
         self.url = 'http://geo.woudc.org/ows'
         """The URL of the WOUDC data service"""
 
+        self.about = 'http://woudc.org/about/data-access.php'
+        """The About Data Access page"""
+
         self.outputformat = 'application/json; subtype=geojson'
         """The default outputformat when requesting WOUDC data"""
 
@@ -76,6 +79,7 @@ class WoudcClient(object):
 
         LOGGER.info('Contacting %s', self.url)
         self.server = WebFeatureService(self.url, '1.1.0')
+        """The main WOUDC server"""
 
     def get_station_metadata(self, raw=False):
         """
