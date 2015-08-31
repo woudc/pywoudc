@@ -9,21 +9,16 @@ environment:
       PYTHON_ARCH: "64"
 
 install:
-  - python -c "from urllib2 import urlopen; exec(urlopen('https://bootstrap.pypa.io/get-pip.py').read())"
-  - pip install -r requirements.txt
-  - pip install -r requirements-dev.txt
+  - set PATH=%PYTHON%;%PYTHON%\Scripts;%PATH%
+  - pip.exe install -r requirements.txt
+  - pip.exe install -r requirements-dev.txt
   - python setup.py install
 
 build: off
 
 test_script:
   - python setup.py test
-  - find -type f -name "*.py" | grep -v docs | xargs pep8 --ignore=E402
-  - find -type f -name "*.py" | grep -v docs | xargs pyflakes
-  - sphinx-apidoc -A "Tom Kralidis" -F -o docs pywoudc
-  - cd docs && make html
-  - cd ..
 
 on_success:
-  - coverage run --source pywoudc setup.py test
-  - coverage report -m
+  - coverage.exe run --source pywoudc setup.py test
+  - coverage.exe report -m
