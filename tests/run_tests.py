@@ -131,7 +131,7 @@ class WoudcClientTest(unittest.TestCase):
                           dataset, temporal=['2000-11-11'])
 
         self.assertRaises(ValueError, self.client.get_data,
-                          dataset, sort_descending='true')
+                          dataset, sort_order='bad')
 
         self.assertRaises(ValueError, self.client.get_data,
                           dataset, variables='foo')

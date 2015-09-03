@@ -139,9 +139,9 @@ class WoudcClient(object):
                           as part of the response (default returns all)
         :param sort_property: a string representing the property on which
                               to sort results (default ``instance_datetime``)
-        :param sort_descending: a boolean of whether to sort descending
-                                (default is ``False``).
-                                Applied if `sort_property` is specified
+        :param sort_order: a string representing sort order of response
+                           (``asc`` or ``desc``).  Default is ``asc``.
+                           Applied if `sort_property` is specified
 
         :returns: list of WOUDC observations GeoJSON payload
         """
@@ -154,10 +154,11 @@ class WoudcClient(object):
         property_name = None
         property_value = None
         sort_property = None
-        sort_descending = False
+        sort_order = 'asc'
         startindex = 0
         features = None
         feature_collection = None
+        sort_descending = False
 
         LOGGER.info('Downloading dataset %s', typename)
 
@@ -175,8 +176,8 @@ class WoudcClient(object):
                 variables = value
             if key == 'sortby':
                 sort_property = value
-            if key == 'sort_descending':
-                sort_descending = value
+            if key == 'sort_order':
+                sort_order = value
 
         LOGGER.debug('Assembling constraints')
         if property_name is not None and property_value is not None:
@@ -201,9 +202,11 @@ class WoudcClient(object):
             constraints.append(fes.PropertyIsBetween(
                 'instance_datetime', temporal_start, temporal_end))
 
-        if sort_descending is not None:
-            if not isinstance(sort_descending, bool):
-                raise ValueError('sort_descending must be boolean')
+        if sort_order not in ['asc', 'desc']:
+            raise ValueError('sort_order must be asc or desc')
+        else:
+            if sort_order == 'desc':
+                sort_descending = True
 
         if variables != '*':
             if not isinstance(variables, list):
