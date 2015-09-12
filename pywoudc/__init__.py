@@ -163,7 +163,7 @@ class WoudcClient(object):
         LOGGER.info('Downloading dataset %s', typename)
 
         LOGGER.debug('Assembling query parameters')
-        for key, value in kwargs.iteritems():
+        for key, value in kwargs.items():
             if key == 'bbox':
                 bbox = value
             if key == 'temporal':
