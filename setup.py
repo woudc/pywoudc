@@ -65,7 +65,7 @@ to WMO WOUDC data services'''
 
 CONTACT = 'Meteorological Service of Canada'
 
-EMAIL = 'tom.kralidis@ec.gc.ca'
+EMAIL = 'tom.kralidis@canada.ca'
 
 SCRIPTS = []
 
