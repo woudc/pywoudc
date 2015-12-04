@@ -47,6 +47,9 @@ import os
 import sys
 from distutils.core import setup, Command
 
+with open('VERSION.txt') as ff:
+    VERSION = ff.read().strip()
+
 # set dependencies
 INSTALL_REQUIRES = [line.strip() for line in open('requirements.txt')]
 
@@ -123,7 +126,7 @@ def find_packages(path, base=''):
 
 setup(
     name='pywoudc',
-    version=pywoudc.__version__,
+    version=VERSION,
     description=DESCRIPTION.strip(),
     long_description=LONG_DESCRIPTION,
     license='MIT',
