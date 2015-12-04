@@ -269,7 +269,7 @@ class WoudcClient(object):
 
             startindex = startindex + self.maxfeatures
 
-        LOGGER.info('Found %d total features', len(features['features']))
+        LOGGER.info('Found %d total features', len(feature_collection['features']))
 
         if sort_property is not None:
             LOGGER.info('Sorting response by %s', sort_property)
