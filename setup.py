@@ -47,8 +47,6 @@ import os
 import sys
 from distutils.core import setup, Command
 
-import pywoudc
-
 # set dependencies
 INSTALL_REQUIRES = [line.strip() for line in open('requirements.txt')]
 
@@ -77,6 +75,10 @@ EMAIL = 'tom.kralidis@canada.ca'
 SCRIPTS = []
 
 URL = 'https://github.com/woudc/pywoudc'
+
+# ensure a fresh MANIFEST file is generated
+if (os.path.exists('MANIFEST')):
+    os.unlink('MANIFEST')
 
 
 class PyTest(Command):
