@@ -63,6 +63,13 @@ KEYWORDS = [
 DESCRIPTION = '''High level package providing Pythonic access
 to WMO WOUDC data services'''
 
+try:
+    import pypandoc
+    LONG_DESCRIPTION = pypandoc.convert('README.md', 'rst')
+except(IOError, ImportError):
+    with open('README.md') as f:
+        LONG_DESCRIPTION = f.read()
+
 CONTACT = 'Meteorological Service of Canada'
 
 EMAIL = 'tom.kralidis@canada.ca'
@@ -116,7 +123,7 @@ setup(
     name='pywoudc',
     version=pywoudc.__version__,
     description=DESCRIPTION.strip(),
-    long_description=open('README.md').read(),
+    long_description=DESCRIPTION,
     license='MIT',
     platforms='all',
     keywords=' '.join(KEYWORDS),
