@@ -123,7 +123,7 @@ setup(
     name='pywoudc',
     version=pywoudc.__version__,
     description=DESCRIPTION.strip(),
-    long_description=DESCRIPTION,
+    long_description=LONG_DESCRIPTION,
     license='MIT',
     platforms='all',
     keywords=' '.join(KEYWORDS),
