@@ -58,14 +58,14 @@ LOGGER = logging.getLogger(__name__)
 class WoudcClient(object):
     """WOUDC Client"""
 
-    def __init__(self):
+    def __init__(self, url='http://geo.woudc.org/ows'):
         """
         Initialize a WOUDC Client.
 
         :returns: instance of pywoudc.WoudcClient
         """
 
-        self.url = 'http://geo.woudc.org/ows'
+        self.url = url
         """The URL of the WOUDC data service"""
 
         self.about = 'http://woudc.org/about/data-access.php'
