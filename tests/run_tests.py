@@ -79,6 +79,9 @@ class WoudcClientTest(unittest.TestCase):
         self.assertEqual(self.client.maxfeatures, 25000,
                          'Expected specific default maxfeatures')
 
+        self.assertEqual(self.client.timeout, 30,
+                         'Expected specific default timeout')
+
         self.assertTrue(isinstance(self.client.server,
                                    WebFeatureService_1_1_0),
                         'Expected specific instance')
