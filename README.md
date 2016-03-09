@@ -46,7 +46,7 @@ easy_install pywoudc
 
 ## Using the API
 
-```bash
+```python
 from pywoudc import WoudcClient
 client = WoudcClient()
 ```
