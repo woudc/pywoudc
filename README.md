@@ -66,7 +66,7 @@ git clone https://github.com/woudc/pywoudc.git
 # via distutils
 python setup.py test
 # manually
-python run_tests.py
+python tests/run_tests.py
 ```
 
 ### Code Conventions
