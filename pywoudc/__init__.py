@@ -85,6 +85,12 @@ class WoudcClient(object):
                                         timeout=self.timeout)
         """The main WOUDC server"""
 
+        try:
+            mf = int(self.server.constraints['DefaultMaxFeatures'].values[0])
+            self.maxfeatures = mf
+        except KeyError:
+            LOGGER.info('Using default maxfeatures')
+
     def get_station_metadata(self, raw=False):
         """
         Download WOUDC station metadata
