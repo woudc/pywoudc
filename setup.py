@@ -68,7 +68,7 @@ to WMO WOUDC data services'''
 try:
     import pypandoc
     LONG_DESCRIPTION = pypandoc.convert('README.md', 'rst')
-except(IOError, ImportError):
+except(IOError, ImportError, OSError):
     with open('README.md') as f:
         LONG_DESCRIPTION = f.read()
 

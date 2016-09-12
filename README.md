@@ -58,6 +58,9 @@ virtualenv pywoudc
 cd pywoudc
 source bin/activate
 git clone https://github.com/woudc/pywoudc.git
+cd pywoudc
+pip install -r requirements.txt
+pip install -r requirements-dev.txt
 ```
 
 ### Running tests
