@@ -27,7 +27,7 @@ standards.
 
 ### Requirements
 
-pywoudc requires Python 2.6 or greater.  pywoudc works with Python 3.
+pywoudc requires Python 2.7 or greater.  pywoudc works with Python 3.
 
 ## Dependencies
 
