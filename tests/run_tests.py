@@ -176,5 +176,6 @@ class WoudcClientTest(unittest.TestCase):
                          '2011-11-30 12:12:12',
                          'Expected specific date string from datetime object')
 
+
 if __name__ == '__main__':
     unittest.main()

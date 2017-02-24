@@ -45,7 +45,7 @@
 
 import os
 import sys
-from distutils.core import setup, Command
+from setuptools import setup, Command
 
 with open('VERSION.txt') as ff:
     VERSION = ff.read().strip()
@@ -124,6 +124,7 @@ def find_packages(path, base=''):
             packages[module_name] = dirname
             packages.update(find_packages(dirname, module_name))
     return packages
+
 
 setup(
     name='pywoudc',

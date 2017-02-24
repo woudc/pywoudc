@@ -23,3 +23,4 @@ script:
 after_success:
   - coverage run --source pywoudc setup.py test
   - coverage report -m
+  - debuild -b -uc -us

@@ -1,0 +1,5 @@
+woudc-pywoudc (0.1.5) stable; urgency=medium
+
+  * initial Debian packaging
+
+ -- Tom Kralidis <tom.kralidis@canada.ca>  Fri, 24 Feb 2017 16:52:59 -0500
