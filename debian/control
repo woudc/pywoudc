@@ -1,4 +1,4 @@
-Source: woudc-pywoudc
+Source: python-pywoudc
 Section: python
 Priority: optional
 Maintainer: WOUDC <ec.woudc.ec@canada.ca>
