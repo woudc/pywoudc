@@ -1,4 +1,4 @@
-Source: woudc-pywoudc
+Source: python-pywoudc
 Section: python
 Priority: optional
 Maintainer: WOUDC <ec.woudc.ec@canada.ca>
@@ -7,7 +7,7 @@ Standards-Version: 3.9.5
 X-Python-Version: >= 2.7
 Vcs-Git: https://github.com/woudc/pywoudc.git
 
-Package: woudc-pywoudc
+Package: python-pywoudc
 Architecture: all
 Depends: ${misc:Depends}, ${python:Depends}, python-pkg-resources, python-owslib
 Homepage: https://woudc.org
