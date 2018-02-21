@@ -66,11 +66,11 @@ class WoudcClientTest(unittest.TestCase):
     def test_smoke_test(self):
         """test basic properties"""
 
-        self.assertEqual(self.client.url, 'http://geo.woudc.org/ows',
+        self.assertEqual(self.client.url, 'https://geo.woudc.org/ows',
                          'Expected specific URL')
 
         self.assertEqual(self.client.about,
-                         'http://woudc.org/about/data-access.php',
+                         'https://woudc.org/about/data-access.php',
                          'Expected specific about URL')
         self.assertEqual(self.client.outputformat,
                          'application/json; subtype=geojson',

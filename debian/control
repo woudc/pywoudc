@@ -10,6 +10,6 @@ Vcs-Git: https://github.com/woudc/pywoudc.git
 Package: woudc-pywoudc
 Architecture: all
 Depends: ${misc:Depends}, ${python:Depends}, python-pkg-resources, python-owslib
-Homepage: http://woudc.org
+Homepage: https://woudc.org
 Description: pywoudc is a high level package providing Pythonic access
  to WOUDC data services.

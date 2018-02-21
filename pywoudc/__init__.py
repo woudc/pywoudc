@@ -58,7 +58,7 @@ LOGGER = logging.getLogger(__name__)
 class WoudcClient(object):
     """WOUDC Client"""
 
-    def __init__(self, url='http://geo.woudc.org/ows', timeout=30):
+    def __init__(self, url='https://geo.woudc.org/ows', timeout=30):
         """
         Initialize a WOUDC Client.
 
@@ -71,7 +71,7 @@ class WoudcClient(object):
         self.timeout = timeout
         """Time (in seconds) after which requests should timeout"""
 
-        self.about = 'http://woudc.org/about/data-access.php'
+        self.about = 'https://woudc.org/about/data-access.php'
         """The About Data Access page"""
 
         self.outputformat = 'application/json; subtype=geojson'
