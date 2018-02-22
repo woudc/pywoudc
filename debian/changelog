@@ -1,3 +1,9 @@
+python-pywoudc (0.1.9) stable; urgency=medium
+
+  * use HTTPS services
+
+ -- Tom Kralidis <tom.kralidis@canada.ca>  Thu, 22 Feb 2018 02:05:22 +0000
+
 python-pywoudc (0.1.8) stable; urgency=medium
 
   * debian fixes
