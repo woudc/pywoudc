@@ -45,7 +45,7 @@
 
 import os
 import sys
-from setuptools import setup, Command
+from setuptools import find_packages, setup, Command
 
 with open('VERSION.txt') as ff:
     VERSION = ff.read().strip()
@@ -76,8 +76,6 @@ CONTACT = 'Meteorological Service of Canada'
 
 EMAIL = 'tom.kralidis@canada.ca'
 
-SCRIPTS = []
-
 URL = 'https://github.com/woudc/pywoudc'
 
 # ensure a fresh MANIFEST file is generated
@@ -100,32 +98,6 @@ class PyTest(Command):
         raise SystemExit(errno)
 
 
-# from https://wiki.python.org/moin/Distutils/Cookbook/AutoPackageDiscovery
-def is_package(path):
-    """decipher whether path is a Python package"""
-
-    return (
-        os.path.isdir(path) and
-        os.path.isfile(os.path.join(path, '__init__.py'))
-    )
-
-
-def find_packages(path, base=''):
-    """Find all packages in path"""
-
-    packages = {}
-    for item in os.listdir(path):
-        dirname = os.path.join(path, item)
-        if is_package(dirname):
-            if base:
-                module_name = '%(base)s.%(item)s' % vars()
-            else:
-                module_name = item
-            packages[module_name] = dirname
-            packages.update(find_packages(dirname, module_name))
-    return packages
-
-
 setup(
     name='pywoudc',
     version=VERSION,
@@ -141,8 +113,6 @@ setup(
     url=URL,
     install_requires=INSTALL_REQUIRES,
     packages=find_packages('.'),
-    # package_data=PACKAGE_DATA,
-    scripts=SCRIPTS,
     classifiers=[
         'Development Status :: 4 - Beta',
         'Environment :: Console',

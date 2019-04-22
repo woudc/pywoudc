@@ -1,7 +1,6 @@
 language: python
 
 python:
-  - "2.7"
   - "3.4"
 
 before_install:
@@ -15,7 +14,7 @@ install:
 
 script:
   - python setup.py test
-  - find -type f -name "*.py" | grep -v docs | xargs flake8 --ignore=E402
+  - find -type f -name "*.py" | grep -v docs | xargs flake8
   - sphinx-apidoc -A "Tom Kralidis" -F -o docs pywoudc
   - cd docs && make html
   - cd ..
