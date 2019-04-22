@@ -1,3 +1,9 @@
+python-pywoudc (0.2.0) stable; urgency=medium
+
+  * support multiple attribute filters
+
+ -- Tom Kralidis <tom.kralidis@canada.ca>  Mon, 22 Apr 2019 16:12:05 +0000
+
 python-pywoudc (0.1.9) stable; urgency=medium
 
   * use HTTPS services
