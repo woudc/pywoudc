@@ -141,10 +141,8 @@ class WoudcClient(object):
                           - string date (e.g. ``2012-10-30``)
                           - string datetime (e.g. ``2012-10-30 11:11:11``)
 
-        :param property_name: a string representing the property name to apply
-                              as filter against
-        :param property_value: a string representing the value which filters
-                               against `property_name`
+        :param filters: `dict` of key-value pairs of property names and
+                        values.  Constructs exclusive search
         :param variables: a list of variables to return
                           as part of the response (default returns all)
         :param sort_property: a string representing the property on which
@@ -157,12 +155,11 @@ class WoudcClient(object):
         """
 
         constraints = []
+        filters = []
         variables = '*'
         filter_string = None
         bbox = None
         temporal = None
-        property_name = None
-        property_value = None
         sort_property = None
         sort_order = 'asc'
         startindex = 0
@@ -178,10 +175,8 @@ class WoudcClient(object):
                 bbox = value
             if key == 'temporal':
                 temporal = value
-            if key == 'property_name':
-                property_name = value
-            if key == 'property_value':
-                property_value = str(value)
+            if key == 'filters':
+                filters = value
             if key == 'variables':
                 variables = value
             if key == 'sortby':
@@ -190,9 +185,9 @@ class WoudcClient(object):
                 sort_order = value
 
         LOGGER.debug('Assembling constraints')
-        if property_name is not None and property_value is not None:
-            constraints.append(fes.PropertyIsEqualTo(property_name,
-                                                     property_value))
+        if filters:
+            for key, value in filters.items():
+                constraints.append(fes.PropertyIsEqualTo(key, value))
         if bbox is not None:
             if not isinstance(bbox, list) or len(bbox) != 4:
                 raise ValueError('bbox must be list of minx, miny, maxx, maxy')
@@ -238,7 +233,7 @@ class WoudcClient(object):
         LOGGER.info('Filters:')
         LOGGER.info('bbox: %r', bbox)
         LOGGER.info('temporal: %r', temporal)
-        LOGGER.info('attribute query: %r = %r', property_name, property_value)
+        LOGGER.info('attribute queries: %r', filters)
 
         # page download and assemble single list of JSON features
         while True:
