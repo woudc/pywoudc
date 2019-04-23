@@ -5,7 +5,7 @@
 
 # pywoudc
 
-High level package providing Pythonic access to [WOUDC](http://geo.woudc.org)
+High level package providing Pythonic access to [WOUDC](https://geo.woudc.org)
 data services.
 
 ## Overview
@@ -16,7 +16,7 @@ World Data Centres which are part of the
 Meteorological Organization.
 
 The WOUDC archive is made available via
-[OGC Web Services](http://geo.woudc.org).  These web services are publically
+[OGC Web Services](https://geo.woudc.org).  These web services are publically
 available and can be used within a GIS environment and / or software supporting
 the OGC standards.  pywoudc provides a high level library using Python idioms
 (API, data structures) which provides Python implementations a simple,
@@ -26,23 +26,26 @@ standards.
 ## Installation
 
 ### Requirements
+- [Python](https://www.python.org) 3 and above
+- [virtualenv](https://virtualenv.pypa.io/)
 
-pywoudc requires Python 2.7 or greater.  pywoudc works with Python 3.
+### Dependencies
+Dependencies are listed in [requirements.txt](requirements.txt). Dependencies
+are automatically installed during woudc-data-registry installation.
 
-## Dependencies
-
-pywoudc requires the [OWSLib](https://geopython.github.io/OWSLib) library.
-Installing via `pip` or `easy_install` will ensure that OWSlib is installed
-as part of pywoudc.
-
-### Installing the Package
+### Installing pywoudc
 
 ```bash
-# via pip
-pip install pywoudc
-# via easy_install
-easy_install pywoudc
-```
+# setup virtualenv
+python3 -m venv --system-site-packages pywoudc
+cd pywoudc
+source bin/activate
+
+# clone codebase and install
+git clone https://github.com/woudc/pywoudc.git
+cd pywoudc
+python setup.py build
+python setup.py install
 
 ## Using the API
 
