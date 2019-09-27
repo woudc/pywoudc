@@ -9,6 +9,7 @@ environment:
 
 install:
   - set PATH=%PYTHON%;%PYTHON%\Scripts;%PATH%
+  - pip.exe install pyproj==1.9.6
   - pip.exe install -r requirements.txt
   - pip.exe install -r requirements-dev.txt
   - python setup.py install
