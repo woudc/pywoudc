@@ -46,12 +46,19 @@ git clone https://github.com/woudc/pywoudc.git
 cd pywoudc
 python setup.py build
 python setup.py install
+```
 
 ## Using the API
 
 ```python
 from pywoudc import WoudcClient
 client = WoudcClient()
+
+# get a GeoJSON dict of all contributors
+client.get_metadata('contributors')
+
+# get a GeoJSON dict of all stations
+client.get_metadata('stations')
 ```
 
 ## Development
