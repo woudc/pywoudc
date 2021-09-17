@@ -88,7 +88,7 @@ class WoudcClient(object):
         try:
             mf = int(self.server.constraints['DefaultMaxFeatures'].values[0])
             self.maxfeatures = mf
-        except KeyError:
+        except AttributeError or KeyError:
             LOGGER.info('Using default maxfeatures')
 
     def get_station_metadata(self, raw=False):
