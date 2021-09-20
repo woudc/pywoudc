@@ -88,7 +88,7 @@ class WoudcClient(object):
         try:
             mf = int(self.server.constraints['DefaultMaxFeatures'].values[0])
             self.maxfeatures = mf
-        except KeyError:
+        except AttributeError or KeyError:
             LOGGER.info('Using default maxfeatures')
 
     def get_station_metadata(self, raw=False):
@@ -297,7 +297,7 @@ class WoudcClient(object):
             LOGGER.info('Emitting raw GeoJSON response')
             return features.read()
         LOGGER.info('Emitting GeoJSON features as list')
-        return json.loads(features.read())
+        return json.loads(features.read().decode('utf-8'))
 
 
 def date2string(dateval, direction='begin'):
