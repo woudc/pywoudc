@@ -1,3 +1,10 @@
+python3-pywoudc (0.3.0) jammy; urgency=medium
+
+  * overhaul for Python3 support
+  * overhaul for WOUDC support
+
+ -- Tom Kralidis <tom.kralidis@ec.gc.ca>  Mon, 15 Jun 2025 17:38:21 +0000
+
 python-pywoudc (0.2.0) stable; urgency=medium
 
   * support multiple attribute filters

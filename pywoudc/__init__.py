@@ -18,7 +18,7 @@
 # those files. Users are asked to read the 3rd Party Licenses
 # referenced with those assets.
 #
-# Copyright (c) 2019 Government of Canada
+# Copyright (c) 2025 Government of Canada
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation
@@ -43,283 +43,311 @@
 #
 # =================================================================
 
-__version__ = '0.2.0'
+__version__ = '0.3.dev0'
 
-import datetime
-import json
+from copy import deepcopy
+from datetime import date, datetime
 import logging
+from typing import Union
 
-from owslib import fes
-from owslib.wfs import WebFeatureService
+import click
+from owslib.ogcapi.features import Features
+from prettytable import PrettyTable
 
 LOGGER = logging.getLogger(__name__)
 
 
-class WoudcClient(object):
+class WoudcClient(Features):
     """WOUDC Client"""
 
-    def __init__(self, url='https://geo.woudc.org/ows', timeout=30):
+    def __init__(self, url='https://api.woudc.org', timeout=30):
         """
         Initialize a WOUDC Client.
 
         :returns: instance of pywoudc.WoudcClient
         """
 
-        self.url = url
-        """The URL of the WOUDC data service"""
+        super().__init__(url)
 
-        self.timeout = timeout
-        """Time (in seconds) after which requests should timeout"""
-
-        self.about = 'https://woudc.org/about/data-access.php'
+        self.about = 'https://woudc.org/en/data/data-access'
         """The About Data Access page"""
 
-        self.outputformat = 'application/json; subtype=geojson'
-        """The default outputformat when requesting WOUDC data"""
+        self.limit = 25000
+        """The default limit of features to return"""
 
-        self.maxfeatures = 25000
-        """The default limit of records to return"""
-
-        LOGGER.info('Contacting %s', self.url)
-        self.server = WebFeatureService(self.url, '1.1.0',
-                                        timeout=self.timeout)
+        LOGGER.info(f'Contacting {self.url}')
+        self.server = Features(self.url, timeout=self.timeout)
         """The main WOUDC server"""
 
-        try:
-            mf = int(self.server.constraints['DefaultMaxFeatures'].values[0])
-            self.maxfeatures = mf
-        except AttributeError or KeyError:
-            LOGGER.info('Using default maxfeatures')
-
-    def get_station_metadata(self, raw=False):
+    def get_stations(self) -> dict:
         """
         Download WOUDC station metadata
 
-        :param raw: a boolean specifying whether to return the raw GeoJSON
-                    payload as a string (default is False)
-        :returns: dictionary of GeoJSON payload
+        :returns: `dict` of GeoJSON payload
         """
 
         LOGGER.info('Fetching station metadata')
-        return self._get_metadata('stations', raw)
+        return self.collection_items('stations', limit=self.limit)
 
-    def get_instrument_metadata(self, raw=False):
+    def get_station(self, woudc_id: str = None, gaw_id: str = None) -> dict:
+        """
+        Download WOUDC station metadata for a single station.  Note
+        that one of `woudc_id` or `gaw_id` is required.
+
+        :param woudc_id: `str` of WOUDC platform identifier
+        :param gaw_id: `str` of GAW identifier
+
+        :returns: `dict` of GeoJSON payload
+        """
+
+        property_filters = {}
+
+        if None in [woudc_id, gaw_id] and None not in [woudc_id, gaw_id]:
+            msg = 'One of WOUDC platform or GAW identifier required'
+            LOGGER.error(msg)
+            raise RuntimeError(msg)
+
+        if woudc_id is not None:
+            property_filters['woudc_id'] = woudc_id
+
+        if gaw_id is not None:
+            property_filters['gaw_id'] = gaw_id
+
+        LOGGER.info('Fetching station metadata')
+        return self.collection_items('stations', **property_filters)
+
+    def get_instruments(self) -> dict:
         """
         Download WOUDC instrument metadata
 
-        :param raw: a boolean specifying whether to return the raw GeoJSON
-                    payload as a string (default is False)
-        :returns: dictionary of GeoJSON payload
+        :returns: `dict` of GeoJSON payload
         """
 
         LOGGER.info('Fetching instrument metadata')
-        return self._get_metadata('instruments', raw)
+        return self.collection_items('instruments', limit=self.limit)
 
-    def get_contributor_metadata(self, raw=False):
+    def get_contributors(self) -> dict:
         """
-        Download WOUDC contributors metadata
+        Download WOUDC contributor metadata
 
-        :param raw: a boolean specifying whether to return the raw GeoJSON
-                    payload as a string (default is False)
-        :returns: dictionary of GeoJSON payload
+        :returns: `dict` of GeoJSON payload
         """
 
         LOGGER.info('Fetching contributor metadata')
-        return self._get_metadata('contributors', raw)
+        return self.collection_items('contributors', limit=self.limit)
 
-    def get_data(self, typename, **kwargs):
+    def get_metadata(self, metadata_type: str) -> dict:
+        """
+        Download WOUDC metadata
+
+        :param type: type of metadata (stations, instruments, contributors)
+
+        :returns: `dict` of GeoJSON feature collection
+        """
+
+        if metadata_type == 'stations':
+            return self.get_stations()
+        elif metadata_type == 'instruments':
+            return self.get_instruments()
+        elif metadata_type == 'contributors':
+            return self.get_contributors()
+
+    def get_data(self, collection: str,
+                 datetime_: Union[Union[date, datetime, None], list[date, datetime, None]] = None,  # noqa
+                 bbox: list = [],
+                 limit: int = 10000,
+                 offset: int = 0,
+                 filters: dict = {},
+                 sortby: list = []) -> dict:
         """
         Download WOUDC observations
 
+        :param collection: `str` of dataset name
         :param bbox: a list representing a bounding box spatial
                      filter (`minx, miny, maxx, maxy`)
-        :param temporal: a list of two elements representing a time period
-                         (start, end) which accepts the following types:
+        :param datetime_: a list (time period start/end) which accepts the
+                          following types:
 
                           - :py:class:`datetime.date`
                           - :py:class:`datetime.datetime`
-                          - string date (e.g. ``2012-10-30``)
-                          - string datetime (e.g. ``2012-10-30 11:11:11``)
-
+                          - :py:class:`None`
         :param filters: `dict` of key-value pairs of property names and
                         values.  Constructs exclusive search
-        :param variables: a list of variables to return
-                          as part of the response (default returns all)
-        :param sort_property: a string representing the property on which
-                              to sort results (default ``instance_datetime``)
-        :param sort_order: a string representing sort order of response
-                           (``asc`` or ``desc``).  Default is ``asc``.
-                           Applied if `sort_property` is specified
+        :param limit: `int` of maximum features
+        :param offset: `int` of start position of query results
+        :param sortby: `list` of the property on which
+                       to sort results and `str` of sort order of response
+                       (``asc`` or ``desc``)
 
-        :returns: list of WOUDC observations GeoJSON payload
+        :returns: `dict` of WOUDC observations GeoJSON payload
         """
 
-        constraints = []
-        filters = []
-        variables = '*'
-        filter_string = None
-        bbox = None
-        temporal = None
-        sort_property = None
-        sort_order = 'asc'
-        startindex = 0
-        features = None
-        feature_collection = None
-        sort_descending = False
+        params = {
+            'collection_id': collection
+        }
+        feature_collection = {
+            'type': 'FeatureColletion',
+            'features': []
+        }
 
-        LOGGER.info('Downloading dataset %s', typename)
+        datetime2 = None
 
         LOGGER.debug('Assembling query parameters')
-        for key, value in kwargs.items():
-            if key == 'bbox':
-                bbox = value
-            if key == 'temporal':
-                temporal = value
-            if key == 'filters':
-                filters = value
-            if key == 'variables':
-                variables = value
-            if key == 'sortby':
-                sort_property = value
-            if key == 'sort_order':
-                sort_order = value
+        if bbox:
+            params['bbox'] = bbox
 
-        LOGGER.debug('Assembling constraints')
-        if filters:
-            for key, value in filters.items():
-                constraints.append(fes.PropertyIsEqualTo(key, value))
-        if bbox is not None:
-            if not isinstance(bbox, list) or len(bbox) != 4:
-                raise ValueError('bbox must be list of minx, miny, maxx, maxy')
-
-            LOGGER.debug('Setting spatial constraint')
-            constraints.append(fes.BBox(bbox))
-
-        if temporal is not None:
-            if not isinstance(temporal, list) or len(temporal) != 2:
-                msg = 'temporal must be list of start date, end date'
+        if datetime_ is not None:
+            if len(datetime_) != 2:
+                msg = 'datetime_ must have a list of begin/end'
                 raise ValueError(msg)
 
-            LOGGER.info('Setting temporal constraint')
-            temporal_start = date2string(temporal[0], 'begin')
-            temporal_end = date2string(temporal[1], 'end')
+            LOGGER.info('Setting temporal extent')
+            start = date2string(datetime_[0], 'begin')
+            end = date2string(datetime_[1], 'end')
+            datetime2 = f'{start}/{end}'
 
-            constraints.append(fes.PropertyIsBetween(
-                'instance_datetime', temporal_start, temporal_end))
+            params['datetime_'] = datetime2
 
-        if sort_order not in ['asc', 'desc']:
-            raise ValueError('sort_order must be asc or desc')
-        else:
-            if sort_order == 'desc':
-                sort_descending = True
+        if 'filters':
+            params.update(filters)
 
-        if variables != '*':
-            if not isinstance(variables, list):
-                raise ValueError('variables must be list')
+        if sortby:
+            if sortby[1] not in ['asc', 'desc']:
+                raise ValueError('sort order must be asc or desc')
+            params['sortby'] = sortby
 
-        if constraints:
-            LOGGER.debug('Combining constraints')
-            flt = fes.FilterRequest()
-            if len(constraints) == 1:
-                LOGGER.debug('Single constraint')
-                filter_string = flt.setConstraint(constraints[0],
-                                                  tostring=True)
-            if len(constraints) > 1:
-                LOGGER.debug('Multiple constraints')
-                filter_string = flt.setConstraintList([constraints],
-                                                      tostring=True)
+        LOGGER.info(f'Query parameters: {params}')
 
-        LOGGER.info('Fetching observations')
-        LOGGER.info('Filters:')
-        LOGGER.info('bbox: %r', bbox)
-        LOGGER.info('temporal: %r', temporal)
-        LOGGER.info('attribute queries: %r', filters)
-
+        LOGGER.info(f'Downloading dataset {collection}')
         # page download and assemble single list of JSON features
         while True:
-            LOGGER.debug('Fetching features %d - %d',
-                         startindex, startindex + self.maxfeatures)
+            print(f'Fetching features {offset} - {offset + limit}')
+            LOGGER.debug(f'Fetching features {offset} - {offset + limit}')
 
-            payload = self.server.getfeature(
-                typename=typename,
-                startindex=startindex,
-                propertyname=variables,
-                maxfeatures=self.maxfeatures,
-                filter=filter_string,
-                outputFormat=self.outputformat).read()
+            params2 = deepcopy(params)
+            params2['limit'] = limit
+            params2['offset'] = offset
 
-            LOGGER.debug('Processing response')
-            if payload.isspace():
-                LOGGER.debug('Empty response. Exiting')
+            print(params2)
+            features = self.collection_items(**params2)
+            LOGGER.debug(f'Features: {features}')
+
+            if len(features['features']) == 0:
+                LOGGER.info('Query produced no results')
                 break
 
-            try:
-                features = json.loads(payload)
-            except ValueError:
-                msg = 'Query produced no results'
-                LOGGER.info(msg)
-                return None
+            LOGGER.debug(f"Found {len(features['features'])} features")
 
-            len_features = len(features['features'])
+            feature_collection['features'].extend(features['features'])
 
-            LOGGER.debug('Found %d features', len_features)
-
-            if feature_collection is None:
-                feature_collection = features
-            else:
-                feature_collection['features'].extend(features['features'])
-
-            if len_features < self.maxfeatures:
+            if len(feature_collection['features']) >= features['numberMatched']:  # noqa
                 break
 
-            startindex = startindex + self.maxfeatures
+            offset += limit
 
         len_feature_collection = len(feature_collection['features'])
-        LOGGER.info('Found %d total features', len_feature_collection)
+        LOGGER.info(f'Found {len_feature_collection} total features')
 
-        if sort_property is not None:
-            LOGGER.info('Sorting response by %s', sort_property)
+        if sortby:
+            LOGGER.info(f'Sorting response by {sortby[0]}')
             feature_collection['features'].sort(
-                key=lambda e: e['properties'][sort_property],
-                reverse=sort_descending)
+                key=lambda e: e['properties'][sortby[0]],
+                reverse=(sortby[1] == 'desc'))
+
+        feature_collection['numberMatched'] = len_feature_collection
+        feature_collection['numberReturned'] = len_feature_collection
 
         return feature_collection
 
-    def _get_metadata(self, typename, raw=False):
-        """generic design pattern to download WOUDC metadata"""
 
-        LOGGER.debug('Fetching data from server')
-        features = self.server.getfeature(typename=typename,
-                                          outputFormat=self.outputformat)
-
-        LOGGER.debug('Processing response')
-        if raw:
-            LOGGER.info('Emitting raw GeoJSON response')
-            return features.read()
-        LOGGER.info('Emitting GeoJSON features as list')
-        return json.loads(features.read().decode('utf-8'))
-
-
-def date2string(dateval, direction='begin'):
+def date2string(dateval: Union[date, datetime, None],
+                direction: str = 'begin'):
     """Utility function (private)"""
 
     date_as_string = None
+
+    if dateval is None:
+        return '..'
 
     if direction == 'begin':
         default_time = '00:00:00'
     elif direction == 'end':
         default_time = '23:59:59'
     else:
-        raise ValueError('direction value must be begin or end')
+        raise ValueError('Direction value must be begin or end')
 
-    if isinstance(dateval, str):
-        if len(dateval) == 10:  # date
-            date_as_string = '%s %s' % (dateval, default_time)
-        elif len(dateval) > 10:  # datetime
-            date_as_string = dateval
-    elif isinstance(dateval, datetime.datetime):
-        date_as_string = dateval.strftime('%Y-%m-%d %H:%M:%S')
-    elif isinstance(dateval, datetime.date):
-        date_as_string = '%s %s' % (dateval.strftime('%Y-%m-%d'), default_time)
+    if isinstance(dateval, datetime):
+        date_as_string = dateval.strftime('%Y-%m-%dT%H:%M:%SZ')
+    elif isinstance(dateval, date):
+        date_as_string = f"{dateval.strftime('%Y-%m-%d')}T{default_time}Z"
+    else:
+        raise ValueError('Expecting date or datetime type')
 
     return date_as_string
+
+
+@click.group()
+@click.version_option(version=__version__)
+def cli():
+    pass
+
+
+@click.command()
+@click.pass_context
+def stations(ctx):
+    """Get WOUDC station metdata"""
+
+    field_names = ['woudc_id', 'gaw_id', 'name', 'active', 'url']
+
+    client = WoudcClient()
+    data = client.collection_items('stations', limit=client.limit)
+
+    pt = PrettyTable()
+    pt.align = 'l'
+    pt.field_names = field_names
+
+    for item in data['features']:
+        row = []
+        for fn in field_names:
+            if fn == 'url':
+                woudc_id = item['id']
+                row.append(f'https://woudc.org/en/data/stations/{woudc_id}')
+            else:
+                row.append(item['properties'][fn])
+        pt.add_row(row)
+
+    click.echo(pt.get_string())
+
+
+@click.command()
+@click.pass_context
+@click.argument('woudc_id')
+def station(ctx, woudc_id):
+    """Get WOUDC station report"""
+
+    field_names = ['woudc_id', 'gaw_id', 'name', 'active', 'url']
+
+    client = WoudcClient()
+    data = client.collection_items(
+        'stations',
+        woudc_id=woudc_id,
+        limit=client.limit)
+
+    pt = PrettyTable()
+    pt.align = 'l'
+    pt.field_names = field_names
+
+    for item in data['features']:
+        row = []
+        for fn in field_names:
+            if fn == 'url':
+                row.append(f'https://woudc.org/en/data/stations/{woudc_id}')
+            else:
+                row.append(item['properties'][fn])
+        pt.add_row(row)
+
+    click.echo(pt.get_string())
+
+
+cli.add_command(stations)
+cli.add_command(station)
