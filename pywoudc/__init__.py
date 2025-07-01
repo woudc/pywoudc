@@ -155,7 +155,7 @@ class WoudcClient(Features):
     def get_data(self, collection: str,
                  datetime_: Union[Union[date, datetime, None], list[date, datetime, None]] = None,  # noqa
                  bbox: list = [],
-                 limit: int = 10000,
+                 limit: int = 25000,
                  offset: int = 0,
                  filters: dict = {},
                  sortby: list = []) -> dict:
@@ -221,14 +221,12 @@ class WoudcClient(Features):
         LOGGER.info(f'Downloading dataset {collection}')
         # page download and assemble single list of JSON features
         while True:
-            print(f'Fetching features {offset} - {offset + limit}')
             LOGGER.debug(f'Fetching features {offset} - {offset + limit}')
 
             params2 = deepcopy(params)
             params2['limit'] = limit
             params2['offset'] = offset
 
-            print(params2)
             features = self.collection_items(**params2)
             LOGGER.debug(f'Features: {features}')
 
