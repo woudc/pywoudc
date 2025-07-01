@@ -26,7 +26,7 @@ jobs:
       run: python3 setup.py test
     - name: run test coverage ⚙️
       run: |
-        coverage run --source pygeometa setup.py test
+        coverage run --source pywoudc setup.py test
         coverage report -m
     - name: build Python package 🏗️
       run: python3 setup.py sdist bdist_wheel --universal
