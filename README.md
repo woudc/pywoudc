@@ -108,6 +108,7 @@ python3 tests/run_tests.py
 ```bash
 # create release (x.y.z is the release version)
 vi pywoudc/__init__.py  # update __version__
+vi debian/changelog  # add changelog entry
 git commit -am 'update release version x.y.z'
 git push origin master
 git tag -a x.y.z -m 'tagging release version x.y.z'
