@@ -112,7 +112,7 @@ class WoudcClientTest(unittest.TestCase):
             _ = self.client.get_data(dataset, sortby=['bad', 'asc'])
 
         data = self.client.get_data(
-            'totalozone', datetime_=[datetime(2000, 11, 11), None])
+            'totalozone', datetime_=[datetime(2024, 11, 11), None])
 
         self.assertTrue(len(data['features']) > 0)
 
