@@ -2,4 +2,5 @@ coverage
 flake8
 pylint
 sphinx
+twine
 wheel
