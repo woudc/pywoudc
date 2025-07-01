@@ -18,7 +18,7 @@
 # those files. Users are asked to read the 3rd Party Licenses
 # referenced with those assets.
 #
-# Copyright (c) 2015 Government of Canada
+# Copyright (c) 2025 Government of Canada
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation
@@ -43,10 +43,8 @@
 #
 # =================================================================
 
-import datetime
+from datetime import date, datetime
 import unittest
-
-from owslib.feature.wfs110 import WebFeatureService_1_1_0
 
 from pywoudc import WoudcClient, date2string
 
@@ -57,7 +55,7 @@ class WoudcClientTest(unittest.TestCase):
     def setUp(self):
         """bootstrap"""
 
-        self.client = WoudcClient()
+        self.client = WoudcClient('https://api.woudc.org')
 
     def tearDown(self):
         """destroy"""
@@ -66,31 +64,21 @@ class WoudcClientTest(unittest.TestCase):
     def test_smoke_test(self):
         """test basic properties"""
 
-        self.assertEqual(self.client.url, 'https://geo.woudc.org/ows',
+        self.assertEqual(self.client.url, 'https://api.woudc.org/',
                          'Expected specific URL')
 
         self.assertEqual(self.client.about,
-                         'https://woudc.org/about/data-access.php',
+                         'https://woudc.org/en/data/data-access',
                          'Expected specific about URL')
-        self.assertEqual(self.client.outputformat,
-                         'application/json; subtype=geojson',
-                         'Expected specific default outputformat')
 
-        self.assertEqual(self.client.maxfeatures, 25000,
-                         'Expected specific default maxfeatures')
-
-        self.assertEqual(self.client.timeout, 30,
-                         'Expected specific default timeout')
-
-        self.assertTrue(isinstance(self.client.server,
-                                   WebFeatureService_1_1_0),
-                        'Expected specific instance')
+        self.assertEqual(self.client.limit, 25000,
+                         'Expected specific default limit')
 
     def test_get_metadata(self):
         """test get various requests for metadata"""
 
-        for typename in ['stations', 'contributors']:
-            data = self.client._get_metadata(typename)
+        for collection in ['stations', 'contributors']:
+            data = self.client.collection_items(collection)
 
             self.assertTrue(isinstance(data, dict),
                             'Expected specific instance')
@@ -105,75 +93,57 @@ class WoudcClientTest(unittest.TestCase):
                             'Expected GeoJSON header')
 
             self.assertTrue(len(data['features']) > 0,
-                            'Expected non-empty %s list' % typename)
+                            'Expected non-empty list')
 
-            raw_data = self.client._get_metadata(typename, raw=True)
-
-            self.assertTrue(isinstance(raw_data, str),
-                            'Expected specific instance')
-
-            self.assertTrue('"type": "FeatureCollection"' in raw_data,
-                            'Expected raw GeoJSON response')
+            data = self.client.collection_items(collection)
 
     def test_get_data(self):
         """test get data handling"""
 
         dataset = 'totalozone'
-        bad_bbox = [42, -52, 84]
 
-        self.assertRaises(ValueError, self.client.get_data,
-                          dataset, bbox=bad_bbox)
+        with self.assertRaises(RuntimeError):
+            _ = self.client.get_data(dataset, bbox=[42, -52, 84])
 
-        self.assertRaises(ValueError, self.client.get_data,
-                          dataset, bbox='-142,42,-53,84')
+        with self.assertRaises(ValueError):
+            _ = self.client.get_data(dataset, datetime_=[date(2000, 11, 11)])
 
-        self.assertRaises(ValueError, self.client.get_data,
-                          dataset, temporal='2000-11-11/2001-10-30')
+        with self.assertRaises(RuntimeError):
+            _ = self.client.get_data(dataset, sortby=['bad', 'asc'])
 
-        self.assertRaises(ValueError, self.client.get_data,
-                          dataset, temporal=['2000-11-11'])
+        data = self.client.get_data(
+            'totalozone', datetime_=[datetime(2024, 11, 11), None])
 
-        self.assertRaises(ValueError, self.client.get_data,
-                          dataset, sort_order='bad')
-
-        self.assertRaises(ValueError, self.client.get_data,
-                          dataset, variables='foo')
+        self.assertTrue(len(data['features']) > 0)
 
     def test_date2string(self):
         """test date handling"""
 
-        self.assertEqual(date2string('2000-10-10', 'begin'),
-                         '2000-10-10 00:00:00',
-                         'Expected specific date string from date string')
+        with self.assertRaises(ValueError):
+            _ = date2string('2000-10-10', direction='begin')
 
-        self.assertEqual(date2string('2001-11-11', 'end'),
-                         '2001-11-11 23:59:59',
-                         'Expected specific date string from date string')
+        with self.assertRaises(ValueError):
+            _ = date2string('2001-11-11', direction='end')
 
-        self.assertEqual(date2string('2000-10-10 02:22:28'),
-                         '2000-10-10 02:22:28',
-                         'Expected specific date string from datetime string')
+        with self.assertRaises(ValueError):
+            _ = date2string('2000-10-10 02:22:28')
 
-        self.assertEqual(date2string('2001-11-11 11:33:24'),
-                         '2001-11-11 11:33:24',
-                         'Expected specific date string from datetime string')
-
-        self.assertEqual(date2string(datetime.date(2000, 11, 30), 'begin'),
-                         '2000-11-30 00:00:00',
+        self.assertEqual(date2string(date(2000, 11, 30), 'begin'),
+                         '2000-11-30T00:00:00Z',
                          'Expected specific date string from date object')
 
-        self.assertEqual(date2string(datetime.date(2011, 11, 30), 'end'),
-                         '2011-11-30 23:59:59',
+        self.assertEqual(date2string(date(2011, 11, 30), 'end'),
+                         '2011-11-30T23:59:59Z',
                          'Expected specific date string from date object')
 
         self.assertEqual(date2string(
-                         datetime.datetime(2002, 10, 30, 11, 11, 11)),
-                         '2002-10-30 11:11:11',
+                         datetime(2002, 10, 30, 11, 11, 11)),
+                         '2002-10-30T11:11:11Z',
                          'Expected specific date string from datetime object')
 
         self.assertEqual(date2string(
-                         datetime.datetime(2011, 11, 30, 12, 12, 12)),
-                         '2011-11-30 12:12:12',
+                         datetime(2011, 11, 30, 12, 12, 12)),
+                         '2011-11-30T12:12:12Z',
                          'Expected specific date string from datetime object')
 
 

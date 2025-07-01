@@ -43,44 +43,10 @@
 #
 # =================================================================
 
-import os
+from pathlib import Path
+import re
+from setuptools import Command, find_packages, setup
 import sys
-from setuptools import find_packages, setup, Command
-
-with open('VERSION.txt') as ff:
-    VERSION = ff.read().strip()
-
-# set dependencies
-with open('requirements.txt') as ff:
-    INSTALL_REQUIRES = [line.strip() for line in ff]
-
-KEYWORDS = [
-    'woudc',
-    'ozone',
-    'uv',
-    'ultra-violet',
-    'WMO',
-]
-
-DESCRIPTION = '''High level package providing Pythonic access
-to WMO WOUDC data services'''
-
-try:
-    import pypandoc
-    LONG_DESCRIPTION = pypandoc.convert('README.md', 'rst')
-except(IOError, ImportError, OSError):
-    with open('README.md') as f:
-        LONG_DESCRIPTION = f.read()
-
-CONTACT = 'Meteorological Service of Canada'
-
-EMAIL = 'tom.kralidis@canada.ca'
-
-URL = 'https://github.com/woudc/pywoudc'
-
-# ensure a fresh MANIFEST file is generated
-if (os.path.exists('MANIFEST')):
-    os.unlink('MANIFEST')
 
 
 class PyTest(Command):
@@ -98,21 +64,66 @@ class PyTest(Command):
         raise SystemExit(errno)
 
 
+def read(filename, encoding='utf-8'):
+    """read file contents"""
+
+    fullpath = Path(__file__).resolve().parent / filename
+
+    with fullpath.open() as fh:
+        contents = fh.read().strip()
+    return contents
+
+
+def get_package_version():
+    """get version from top-level package init"""
+    version_file = read('pywoudc/__init__.py')
+    version_match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]",
+                              version_file, re.M)
+    if version_match:
+        return version_match.group(1)
+    raise RuntimeError('Unable to find version string.')
+
+
+LONG_DESCRIPTION = read('README.md')
+
+DESCRIPTION = 'High level package providing Pythonic access to WMO WOUDC data services'  # noqa
+
+MANIFEST = Path('MANIFEST')
+
+if MANIFEST.exists():
+    MANIFEST.unlink()
+
+
 setup(
     name='pywoudc',
-    version=VERSION,
+    version=get_package_version(),
     description=DESCRIPTION.strip(),
     long_description=LONG_DESCRIPTION,
+    long_description_content_type='text/markdown',
     license='MIT',
     platforms='all',
-    keywords=' '.join(KEYWORDS),
-    author=CONTACT,
-    author_email=EMAIL,
-    maintainer=CONTACT,
-    maintainer_email=EMAIL,
-    url=URL,
-    install_requires=INSTALL_REQUIRES,
-    packages=find_packages('.'),
+    keywords=' '.join([
+        'woudc',
+        'ozone',
+        'uv',
+        'ultra-violet',
+        'atmosphere',
+        'atmospheric composition',
+        'WMO',
+    ]),
+    author='Tom Kralidis',
+    author_email='tomkralidis@gmail.com',
+    maintainer='Tom Kralidis',
+    maintainer_email='tomkraldis@gmail.com',
+    url='https://github.com/woudc/pywoudc',
+    install_requires=read('requirements.txt').splitlines(),
+    packages=find_packages(),
+    include_package_data=True,
+    entry_points={
+        'console_scripts': [
+            'pywoudc=pywoudc:cli'
+        ]
+    },
     classifiers=[
         'Development Status :: 4 - Beta',
         'Environment :: Console',
@@ -124,6 +135,5 @@ setup(
         'Topic :: Scientific/Engineering :: Atmospheric Science',
         'Topic :: Scientific/Engineering :: GIS'
     ],
-    cmdclass={'test': PyTest},
-    test_suite='tests.run_tests'
+    cmdclass={'test': PyTest}
 )

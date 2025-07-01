@@ -1,15 +1,14 @@
-Source: python-pywoudc
+Source: python3-pywoudc
 Section: python
 Priority: optional
-Maintainer: WOUDC <ec.woudc.ec@canada.ca>
-Build-Depends: debhelper (>= 9), python, python-setuptools
-Standards-Version: 3.9.5
-X-Python-Version: >= 2.7
+Maintainer: WOUDC <woudc@ec.gc.ca>
+Build-Depends: debhelper (>= 9), dh-python, python3-all, python3-setuptools
+Standards-Version: 4.3.0
 Vcs-Git: https://github.com/woudc/pywoudc.git
 
 Package: python-pywoudc
 Architecture: all
-Depends: ${misc:Depends}, ${python:Depends}, python-pkg-resources, python-owslib
+Depends: ${misc:Depends}, ${python3:Depends}, python3-owslib, python3-click, python3-prettytable
 Homepage: https://woudc.org
 Description: pywoudc is a high level package providing Pythonic access
  to WOUDC data services.

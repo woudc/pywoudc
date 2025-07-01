@@ -1,11 +1,10 @@
-[![Build Status](https://travis-ci.org/woudc/pywoudc.png?branch=master)](https://travis-ci.org/woudc/pywoudc) [![Build status](https://ci.appveyor.com/api/projects/status/02koln2pe4ap5kvd/branch/master?svg=true)](https://ci.appveyor.com/project/tomkralidis/pywoudc)
+[![Build Status](https://github.com/woudc/pywoudc/workflows/build%20%E2%9A%99%EF%B8%8F/badge.svg)](https://github.com/woudc/pywoudc/actions)
 [![Downloads this month on PyPI](https://img.shields.io/pypi/dm/pywoudc.svg)](http://pypi.python.org/pypi/pywoudc)
 [![Latest release](https://img.shields.io/pypi/v/pywoudc.svg)](http://pypi.python.org/pypi/pywoudc)
-[![License](https://img.shields.io/github/license/woudc/pywoudc.svg)](https://github.com/woudc/pywoudc)
 
 # pywoudc
 
-High level package providing Pythonic access to [WOUDC](https://geo.woudc.org)
+High level package providing Pythonic access to [WOUDC](https://woudc.org/en/data/data-access)
 data services.
 
 ## Overview
@@ -16,9 +15,9 @@ World Data Centres which are part of the
 Meteorological Organization.
 
 The WOUDC archive is made available via
-[OGC Web Services](https://geo.woudc.org).  These web services are publically
-available and can be used within a GIS environment and / or software supporting
-the OGC standards.  pywoudc provides a high level library using Python idioms
+[OGC APIs](https://api.woudc.org).  These APIs are publically
+available and can be used with any environment and / or software supporting
+the OGC API standards.  pywoudc provides a high level library using Python idioms
 (API, data structures) which provides Python implementations a simple,
 straightforward bridge without requiring intimate knowledge of the OGC
 standards.
@@ -27,11 +26,11 @@ standards.
 
 ### Requirements
 - [Python](https://www.python.org) 3 and above
-- [virtualenv](https://virtualenv.pypa.io/)
+- [virtualenv](https://virtualenv.pypa.io)
 
 ### Dependencies
 Dependencies are listed in [requirements.txt](requirements.txt). Dependencies
-are automatically installed during woudc-data-registry installation.
+are automatically installed during pywoudc installation.
 
 ### Installing pywoudc
 
@@ -44,8 +43,27 @@ source bin/activate
 # clone codebase and install
 git clone https://github.com/woudc/pywoudc.git
 cd pywoudc
-python setup.py build
-python setup.py install
+pip3 install .
+```
+
+## Running
+
+From the command line:
+
+```bash
+pywoudc --version
+
+# get all stations
+pywoudc stations
+
+# get station report
+pywoudc station <woudc_id>
+
+# get instruments
+pywoudc instruments
+
+# get instrument report
+pywoudc instrument <instrument_id>
 ```
 
 ## Using the API
@@ -59,6 +77,9 @@ client.get_metadata('contributors')
 
 # get a GeoJSON dict of all stations
 client.get_metadata('stations')
+
+# get a GeoJSON dict of all instruments
+client.get_metadata('instruments')
 ```
 
 ## Development
@@ -69,17 +90,40 @@ cd pywoudc
 source bin/activate
 git clone https://github.com/woudc/pywoudc.git
 cd pywoudc
-pip install -r requirements.txt
-pip install -r requirements-dev.txt
+pip3 install -r requirements.txt
+pip3 install -r requirements-dev.txt
 ```
 
 ### Running tests
 
 ```bash
-# via distutils
-python setup.py test
+# via setuptools
+python3 setup.py test
 # manually
-python tests/run_tests.py
+python3 tests/run_tests.py
+```
+
+### Releasing
+
+```bash
+# create release (x.y.z is the release version)
+vi pywoudc/__init__.py  # update __version__
+git commit -am 'update release version x.y.z'
+git push origin master
+git tag -a x.y.z -m 'tagging release version x.y.z'
+git push --tags
+
+# upload to PyPI
+rm -fr build dist *.egg-info
+python3 setup.py sdist bdist_wheel --universal
+twine upload dist/*
+
+# publish release on GitHub (https://github.com/woudc/pywoudc/releases/new)
+
+# bump version back to dev
+vi pywoudc/__init__.py  # update __version__
+git commit -am 'back to dev'
+git push origin master
 ```
 
 ### Code Conventions
