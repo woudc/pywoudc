@@ -72,7 +72,7 @@ class WoudcClient(Features):
         self.about = 'https://woudc.org/en/data/data-access'
         """The About Data Access page"""
 
-        self.limit = 25000
+        self.limit = 1000
         """The default limit of features to return"""
 
         LOGGER.info(f'Contacting {self.url}')
@@ -155,7 +155,7 @@ class WoudcClient(Features):
     def get_data(self, collection: str,
                  datetime_: Union[Union[date, datetime, None], list[date, datetime, None]] = None,  # noqa
                  bbox: list = [],
-                 limit: int = 25000,
+                 limit: int = 1000,
                  offset: int = 0,
                  filters: dict = {},
                  sortby: list = []) -> dict:
