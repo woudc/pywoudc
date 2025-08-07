@@ -71,7 +71,7 @@ class WoudcClientTest(unittest.TestCase):
                          'https://woudc.org/en/data/data-access',
                          'Expected specific about URL')
 
-        self.assertEqual(self.client.limit, 25000,
+        self.assertEqual(self.client.limit, 1000,
                          'Expected specific default limit')
 
     def test_get_metadata(self):
