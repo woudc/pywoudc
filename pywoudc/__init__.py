@@ -190,6 +190,9 @@ class WoudcClient(Features):
             'features': []
         }
 
+        if collection == 'ozonesonde':
+            limit = 100
+
         datetime2 = None
 
         LOGGER.debug('Assembling query parameters')
