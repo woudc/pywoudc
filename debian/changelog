@@ -1,3 +1,9 @@
+python3-pywoudc (0.3.1) jammy; urgency=medium
+
+  * update ozondesonde data download limit to 100
+
+ -- Tom Kralidis <tom.kralidis@ec.gc.ca>  Mon, 18 Aug 2025 16:40:22 +0000
+
 python3-pywoudc (0.3.0) jammy; urgency=medium
 
   * overhaul for Python3 support
