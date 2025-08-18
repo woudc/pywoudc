@@ -43,7 +43,7 @@
 #
 # =================================================================
 
-__version__ = '0.3.1'
+__version__ = '0.3.dev1'
 
 from copy import deepcopy
 from datetime import date, datetime
