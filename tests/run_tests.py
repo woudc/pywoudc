@@ -77,20 +77,18 @@ class WoudcClientTest(unittest.TestCase):
     def test_get_metadata(self):
         """test get various requests for metadata"""
 
-        for collection in ['stations', 'contributors']:
+        for collection in ['stations', 'contributors', 'deployments']:
             data = self.client.collection_items(collection)
 
             self.assertTrue(isinstance(data, dict),
                             'Expected specific instance')
 
-            self.assertTrue('type' in data,
-                            'Expected GeoJSON header')
+            self.assertIn('type', data, 'Expected GeoJSON header')
 
             self.assertEqual(data['type'], 'FeatureCollection',
                              'Expected GeoJSON header')
 
-            self.assertTrue('features' in data,
-                            'Expected GeoJSON header')
+            self.assertIn('features', data, 'Expected GeoJSON header')
 
             self.assertTrue(len(data['features']) > 0,
                             'Expected non-empty list')

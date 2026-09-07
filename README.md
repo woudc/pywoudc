@@ -1,6 +1,4 @@
 [![Build Status](https://github.com/woudc/pywoudc/workflows/build%20%E2%9A%99%EF%B8%8F/badge.svg)](https://github.com/woudc/pywoudc/actions)
-[![Downloads this month on PyPI](https://img.shields.io/pypi/dm/pywoudc.svg)](http://pypi.python.org/pypi/pywoudc)
-[![Latest release](https://img.shields.io/pypi/v/pywoudc.svg)](http://pypi.python.org/pypi/pywoudc)
 
 # pywoudc
 
@@ -24,23 +22,21 @@ standards.
 
 ## Installation
 
-### Requirements
-- [Python](https://www.python.org) 3 and above
-- [virtualenv](https://virtualenv.pypa.io)
+### pip
 
-### Dependencies
-Dependencies are listed in [requirements.txt](requirements.txt). Dependencies
-are automatically installed during pywoudc installation.
-
-### Installing pywoudc
+Install latest stable version from [PyPI](https://pypi.org/project/pywoudc).
 
 ```bash
-# setup virtualenv
-python3 -m venv --system-site-packages pywoudc
-cd pywoudc
-source bin/activate
+pip3 install pywoudc
+```
 
-# clone codebase and install
+### From source
+Install latest development version.
+
+```bash
+python3 -m venv pywoudc
+cd pywoudc
+. bin/activate
 git clone https://github.com/woudc/pywoudc.git
 cd pywoudc
 pip3 install .
@@ -80,35 +76,34 @@ client.get_metadata('stations')
 
 # get a GeoJSON dict of all instruments
 client.get_metadata('instruments')
+
+# get a GeoJSON dict of all deployments
+client.get_metadata('deployments')
 ```
 
 ## Development
 
 ```bash
-virtualenv pywoudc
+python3 -m venv pywoudc
 cd pywoudc
 source bin/activate
 git clone https://github.com/woudc/pywoudc.git
 cd pywoudc
-pip3 install -r requirements.txt
-pip3 install -r requirements-dev.txt
+pip3 install .
+pip3 install ".[dev]"
 ```
 
-### Running tests
+### Running Tests
 
 ```bash
-# via setuptools
-python3 setup.py test
-# manually
 python3 tests/run_tests.py
 ```
 
-### Releasing
+## Releasing
 
 ```bash
 # create release (x.y.z is the release version)
-vi pywoudc/__init__.py  # update __version__
-vi debian/changelog  # add changelog entry
+vi pyproject.toml  # update [project]/version
 git commit -am 'update release version x.y.z'
 git push origin master
 git tag -a x.y.z -m 'tagging release version x.y.z'
@@ -116,13 +111,13 @@ git push --tags
 
 # upload to PyPI
 rm -fr build dist *.egg-info
-python3 setup.py sdist bdist_wheel --universal
+python3 -m build
 twine upload dist/*
 
 # publish release on GitHub (https://github.com/woudc/pywoudc/releases/new)
 
 # bump version back to dev
-vi pywoudc/__init__.py  # update __version__
+vi pyproject.toml  # update [project]/version
 git commit -am 'back to dev'
 git push origin master
 ```
@@ -135,3 +130,7 @@ pywoudc code conventions are as per
 ## Issues
 
 Issues are managed at https://github.com/woudc/pywoudc/issues
+
+## Contact
+
+* [Tom Kralidis](https://github.com/tomkralidis)
