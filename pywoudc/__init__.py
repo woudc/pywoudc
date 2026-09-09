@@ -18,7 +18,7 @@
 # those files. Users are asked to read the 3rd Party Licenses
 # referenced with those assets.
 #
-# Copyright (c) 2025 Government of Canada
+# Copyright (c) 2026 Government of Canada
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation
@@ -43,10 +43,9 @@
 #
 # =================================================================
 
-__version__ = '0.3.dev1'
-
 from copy import deepcopy
 from datetime import date, datetime
+import importlib
 import logging
 from typing import Union
 
@@ -55,6 +54,8 @@ from owslib.ogcapi.features import Features
 from prettytable import PrettyTable
 
 LOGGER = logging.getLogger(__name__)
+
+__version__ = importlib.metadata.version('pywoudc')
 
 
 class WoudcClient(Features):
@@ -136,6 +137,16 @@ class WoudcClient(Features):
         LOGGER.info('Fetching contributor metadata')
         return self.collection_items('contributors', limit=self.limit)
 
+    def get_deployments(self) -> dict:
+        """
+        Download WOUDC deployment metadata
+
+        :returns: `dict` of GeoJSON payload
+        """
+
+        LOGGER.info('Fetching deployment metadata')
+        return self.collection_items('deployments', limit=self.limit)
+
     def get_metadata(self, metadata_type: str) -> dict:
         """
         Download WOUDC metadata
@@ -151,6 +162,8 @@ class WoudcClient(Features):
             return self.get_instruments()
         elif metadata_type == 'contributors':
             return self.get_contributors()
+        elif metadata_type == 'deployments':
+            return self.get_deployments()
 
     def get_data(self, collection: str,
                  datetime_: Union[Union[date, datetime, None], list[date, datetime, None]] = None,  # noqa

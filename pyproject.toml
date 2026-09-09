@@ -1,0 +1,47 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pywoudc"
+version = "0.3.dev1"
+description = "High level package providing Pythonic access to WMO WOUDC data services"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+license-files = ["LICENSE.md"]
+keywords = ["woudc", "ozone", "uv", "ultra-violet", "atmosphere", "atmospheric composition", "WMO"]
+authors = [
+    {name = "Tom Kralidis", email = "tomkralidis@gmail.com"}
+]
+maintainers = [
+    {name = "Tom Kralidis", email = "tomkralidis@gmail.com"}
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Topic :: Scientific/Engineering :: Atmospheric Science",
+    "Topic :: Scientific/Engineering :: GIS"
+]
+dependencies = [
+    "click",
+    "OWSLib",
+    "prettytable"
+]
+
+[project.optional-dependencies]
+dev = ["flake8", "sphinx"]
+release = ["build", "twine", "wheel"]
+
+[project.urls]
+homepage = "https://github.com/woudc/pywoudc"
+source = "https://github.com/woudc/pywoudc"
+documentation = "https://github.com/woudc/pywoudc"
+issues = "https://github.com/woudc/pywoudc/issues"
+
+[tool.setuptools.package-data]
+"woudc_extcsv.resources" = ["*.csv", "*.json", "*.yml"]
