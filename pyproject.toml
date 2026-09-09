@@ -37,6 +37,9 @@ dependencies = [
 dev = ["flake8", "sphinx"]
 release = ["build", "twine", "wheel"]
 
+[project.scripts]
+pywoudc = "pywoudc:cli"
+
 [project.urls]
 homepage = "https://github.com/woudc/pywoudc"
 source = "https://github.com/woudc/pywoudc"
